@@ -4,7 +4,10 @@
 
 - **Esri** (Tamrat Belayneh, Simon Haegler)
 - **Nvidia** (Aaron Luk)
-- Also based on work by David de Koning, Sebastien Vielliard, Simon Haegler, Tamrat Belayneh in the AOUSD AECO Interest Group.
+- The case study, the WKT encoding section and the runtime coordinate
+  transformation section are Sébastien Vielliard's work.
+- Also draws on work by David de Koning, Sébastien Vielliard, Simon Haegler
+  and Tamrat Belayneh in the AOUSD AECO Interest Group.
 
 ## Introduction
 
@@ -173,11 +176,11 @@ WKT 2 supports the `COORDINATEMETADATA` wrapper
 with `FRAMEEPOCH` and `EPOCH` clauses
 for high-precision applications.
 
-## Case Study for WGS84 Approach
+## Case study for the WGS 84 approach
 
 WGS 84 (EPSG:4326) became dominant mainly because GPS uses it natively — every GPS receiver outputs coordinates in this datum. It is a global geodetic reference, so unlike national datums it works anywhere on Earth with one definition. The web mapping ecosystem reinforced this: GeoJSON mandates it, and most APIs and OGC standards default to it. Being a simple longitude/latitude geographic CRS makes it human-readable and easy to re-project from.
 
-### Eiffel Tower Example
+### Eiffel Tower example
 
 Currently, OpenUSD georeferencing relies on stage-level metadata to define the relationship between virtual and physical space. Consider a high-fidelity model of the Eiffel Tower:
 
@@ -188,7 +191,7 @@ Currently, OpenUSD georeferencing relies on stage-level metadata to define the r
 
 ![Eiffel Tower](./eiffel_tower.png)
 
-### WGS84 Georeferencing Approach
+### WGS 84 georeferencing approach
 
 The [omniGeospatial](https://docs.omniverse.nvidia.com/kit/docs/omni.usd.schema.geospatial/0.0.1/USD_SCHEMAS.html) schema (and [Hydra plugin](https://github.com/NVIDIA-Omniverse/OpenUSD-plugin-samples/tree/main/src/hydra-plugins#creating-a-custom-hydra-20-scene-index-for-geospatially-aware-transforms) as introduced by Nvidia Omniverse) georeferences such a model by applying a `WGS84ReferencePositionAPI` to a parent `Xform` prim.
 
@@ -200,29 +203,36 @@ This establishes a global anchor using:
 
 The runtime engine then performs an Earth-Centered, Earth-Fixed (ECEF) conversion and a rotation into a Local Tangent Plane, such as East-North-Up (ENU).
 
-### Limitations of only using a WGS84 anchor point
+### Limitations of only using a WGS 84 anchor point
 
-While likely sufficient for visual effect work, the above methods is inadequate for high-precision Survey and Construction for two primary reasons:
+While likely sufficient for visual effects work, the above method is inadequate for high-precision Survey and Construction for two primary reasons:
 
 1. Datum Ambiguity: The term "WGS84" technically denotes a Datum Ensemble with an inherent low accuracy of approximately 2 meters. WGS84 coordinates are dynamic, changing over time due to tectonic plate motions, and up to 10 cm per year. For WGS84 coordinates to be accurate, they must be provided with the corresponding realization and measurement epoch (e.g., "WGS 84 (G2296) at epoch 2026.25"). This necessary detail is currently unsupported in standard USD schemas.
 
 2. Axis Orientation: The current definition of "USD North" lacks the precision needed to align with the "True North" of a national geodetic Coordinate Reference System (CRS). Furthermore, AECO projects often require heights to be referenced to the geoid (orthometric height) for gravity-dependent systems, such as drainage. Current USD methods cannot precisely align with local vertical systems (like IGN 69) or map projections (like Lambert 93), which for example are the official systems used for AECO projects in France.
 
-## The Proposal: Use of OGC WKT 2.1.11
+## Encoding the CRS: OGC WKT 2.1.11
 
 We propose updating the OpenUSD schema to support describing the Coordinate Reference System (CRS) as a self-contained [WKT v2.1.11](https://docs.ogc.org/is/18-010r11/18-010r11.pdf) string ("Well-known text representation of coordinate reference systems"). This is equivalent to [ISO 19162:2019](https://www.iso.org/standard/76496.html).
 
-Key Benefits:
+This section covers the encoding only. The schema that carries it, and how a
+CRS binds to the scene graph, are in [Design overview](#design-overview) and
+[Detailed design](#detailed-design) below.
+
+Key benefits:
 
 - Standardization: Uses a mature, ISO-compliant format widely adopted in GIS and engineering.
 - Self-Contained: Encodes all necessary parameters (ellipsoid, datum, projection, and units) in a single string, eliminating runtime database dependencies.
 - Precision: Supports accurate definition of any Coordinate Reference Systems.
 
-### WKT Examples
+### WKT examples
 
-#### WGS84 ENU (East-North-Up) Local Tangent Plane
+The two examples here are worked against the case study. Reference encodings
+of common CRS types are in [Appendix A](#appendix-a-wkt-examples).
 
-The following WKT string could be used to replace the approach using `WGS84ReferencePositionAPI` (see [case study](#case-study-for-wgs84-approach) above). It defines a 3D local coordinate system centered at the Eiffel Tower with a Y-Up orientation.
+#### WGS 84 ENU (east-north-up) local tangent plane
+
+The following WKT string could be used to replace the approach using `WGS84ReferencePositionAPI` (see [case study](#case-study-for-the-wgs-84-approach) above). It defines a 3D local coordinate system centered at the Eiffel Tower with a Y-Up orientation. Note that this example encodes the up axis in the CRS itself, while [Stage metadata: metersPerUnit and upAxis](#stage-metadata-metersperunit-and-upaxis) below recommends `upAxis = "Z"` for geospatial scenes, and the worked examples in this document set it. Which of the two carries the up axis is [open question 1](#open-questions).
 
 ```lisp
 GEODCRS["Y-Up Local Tangent Plane at Eiffel Tower",
@@ -244,7 +254,7 @@ GEODCRS["Y-Up Local Tangent Plane at Eiffel Tower",
     LENGTHUNIT["metre", 1]]
 ```
 
-#### Derived CRS with Affine Site Calibration
+#### Derived CRS with affine site calibration
 
 For projects requiring high accuracy, we can compute the transformation between the National CRS (e.g., Lambert-93 + IGN69) and the USD local CRS using least squares. This transformation—which can include affine transformations (EPSG 9624) and vertical adjustment planes to account for localized vertical deviations—can be encoded directly into the WKT string.
 
@@ -940,6 +950,13 @@ and informed the final design.
    How should the CRS's unit definition interact with `metersPerUnit`?
    Should the runtime enforce consistency, convert automatically,
    or leave it to the authoring tool?
+   The same question applies to the up axis, and this document
+   currently answers it both ways: the WGS 84 ENU example encodes
+   Y-up in the CRS, while the stage metadata section recommends
+   `upAxis = "Z"` and the scene examples use it.
+   A path forward is to decide whether the CRS may declare an up axis
+   at all, or whether the stage metadata is always authoritative
+   and the CRS is read in its own declared axes.
 
 2. **Axis mapping.**
    Geospatial CRS axis orders vary
@@ -947,9 +964,15 @@ and informed the final design.
    How does this interact with USD's coordinate conventions?
 
 3. **Third-party library abstraction.**
-   What is the concrete API for plugging in PROJ, GDAL,
-   or other CRS transformation libraries?
-   Is this a USD plugin interface or a build-time dependency?
+   [Runtime coordinate transformation](#runtime-coordinate-transformation)
+   now gives the signature and says implementations register through
+   the OpenUSD plugin system, so the shape is settled.
+   A dynamic CRS carries its coordinate epoch in its own WKT
+   (see [Appendix A](#appendix-a-wkt-examples)), so that needs no
+   parameter of its own.
+   What is still open is how failure is reported: the signature returns
+   nothing, and a transform that cannot be computed should be surfaced
+   rather than quietly skipped.
 
 4. **WKT validation.**
    Should OpenUSD validate WKT strings at authoring time?
@@ -1040,8 +1063,8 @@ Working prototype implementations exist:
    and register the `usdGeospatial` library
    in the OpenUSD build system.
 
-3. **Define the third-party library abstraction API**
-   for CRS parsing and reprojection.
+3. **Settle what the transformation abstraction must carry**
+   beyond coordinates — epoch, orientation, and failure reporting.
 
 4. **Collaborate with the Geometry Working Group**
    on double-precision geometry support.
@@ -1055,9 +1078,15 @@ Working prototype implementations exist:
 7. **Ship standard CRS library files**
    with common EPSG definitions.
 
-8. Refine the sample WKT strings to ensure consistent usage of elements from the WKT v2 specification when describing the same CRS across various typical use cases.
+8. **Make the sample WKT strings consistent**
+   in their use of WKT v2 elements,
+   so the same CRS is described the same way throughout.
 
-9. Write sample source code to demonstrate how the resulting WKT strings can be used with the open-source PROJ library to convert USD coordinates to the national coordinate reference system with expected accuracy.
+9. **Demonstrate the accuracy claim**
+   by extending the PROJ sample above
+   into a worked conversion from USD coordinates
+   to a national CRS, with the expected accuracy stated
+   and checked.
 
 ## References
 
@@ -1075,6 +1104,9 @@ Working prototype implementations exist:
 | AOUSD Geospatial Presentation | [Google Slides](https://docs.google.com/presentation/d/13hVKSXQjJ1IAAj2ZLQL8klVAHC22GBcqNvV2WYqRWRY) |
 
 ## Appendix A: WKT examples
+
+These are reference encodings of common CRS types. The two examples worked
+against the case study are in [WKT examples](#wkt-examples) above.
 
 ### WGS 84 / UTM zone 11N (EPSG:32611)
 
