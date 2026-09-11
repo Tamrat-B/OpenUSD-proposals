@@ -417,22 +417,6 @@ The large CRS coordinates are carried in the double-precision
 Mesh vertex positions are small offsets (typically < 1 km)
 relative to that anchor, staying well within float32 range.
 
-### Target CRS and runtime reprojection
-
-The **Target CRS** for a stage is defined by the CRS
-bound to the composed `defaultPrim` of the root layer stack.
-
-At render/query time, all prims whose bound CRS
-differs from the Target CRS are **reprojected** —
-their transforms are mathematically converted
-from the source CRS to the Target CRS.
-
-This reprojection is implemented as a
-**Hydra 2.0 Scene Index Filter** (for rendering)
-and as API methods (for computation),
-using an abstracted interface to third-party CRS libraries
-(PROJ, GDAL, Esri projection engine, etc.).
-
 ## Detailed design
 
 ### GeospatialCRS typed schema
@@ -711,12 +695,16 @@ world.AddTranslateOp(UsdGeomXformOp.PrecisionDouble).Set(
 
 ## Runtime coordinate transformation
 
+### When coordinates must be harmonized
+
 There are several runtime situations where coordinates defined in different CRS need to be harmonized:
 
 - rendering
 - stage queries (e.g. bounding boxes)
 - indirect transformation requests (e.g. upon stage flattening)
 - explicit transformation requests using the new API calls
+
+### The transformation abstraction
 
 We propose to introduce an internal abstraction to compute coordinate transformations from one CRS to another:
 
@@ -725,6 +713,22 @@ transform(inout ArrayVector3d coordinates, in WKT crsIn, in WKT crsOut)
 ```
 
 The OpenUSD plugin system is employed to register implementations.
+
+### Target CRS and runtime reprojection
+
+The **Target CRS** for a stage is defined by the CRS
+bound to the composed `defaultPrim` of the root layer stack.
+
+At render/query time, all prims whose bound CRS
+differs from the Target CRS are **reprojected** —
+their transforms are mathematically converted
+from the source CRS to the Target CRS.
+
+This reprojection is implemented as a
+**Hydra 2.0 Scene Index Filter** (for rendering)
+and as API methods (for computation),
+using an abstracted interface to third-party CRS libraries
+(PROJ, GDAL, Esri projection engine, etc.).
 
 ### Default Implementation using the "PROJ" library
 
