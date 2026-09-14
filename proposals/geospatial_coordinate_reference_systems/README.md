@@ -232,7 +232,7 @@ of common CRS types are in [Appendix A](#appendix-a-wkt-examples).
 
 #### WGS 84 ENU (east-north-up) local tangent plane
 
-The following WKT string could be used to replace the approach using `WGS84ReferencePositionAPI` (see [case study](#case-study-for-the-wgs-84-approach) above). It defines a 3D local coordinate system centered at the Eiffel Tower with a Y-Up orientation. Note that this example encodes the up axis in the CRS itself, while [Stage metadata: metersPerUnit and upAxis](#stage-metadata-metersperunit-and-upaxis) below recommends `upAxis = "Z"` for geospatial scenes, and the worked examples in this document set it. Which of the two carries the up axis is [open question 1](#open-questions).
+The following WKT string encodes, as a CRS, the same georeference that the `WGS84ReferencePositionAPI` [case study](#case-study-for-the-wgs-84-approach) above carries as a scene-level position. It is here to show what WKT 2 can express, and not to offer a second way of placing content: a CRS names the system a prim's coordinates are expressed in, and the prim's own transform gives its position within that system. The two compose, and neither replaces the other. It defines a 3D local coordinate system centered at the Eiffel Tower with a Y-Up orientation. Note that this example encodes the up axis in the CRS itself, while [Stage metadata: metersPerUnit and upAxis](#stage-metadata-metersperunit-and-upaxis) below recommends `upAxis = "Z"` for geospatial scenes, and the worked examples in this document set it. Which of the two carries the up axis is [open question 1](#open-questions).
 
 ```lisp
 GEODCRS["Y-Up Local Tangent Plane at Eiffel Tower",
