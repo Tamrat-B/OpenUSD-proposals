@@ -90,14 +90,13 @@ To place a 3D model at a real-world location, three things are needed:
    with the geometry in the scene graph.
 
 4. **A record of the coordinate reference system a source's data was
-   authored in.** This is a different question from 1. The first says how a
-   prim's coordinates are to be read now; this says what the data arrived as,
-   so that a later ingest, export or round trip can reproject it correctly, or
-   decline to. Bringing disparate sources into one common frame without
-   permanently altering the originals is the ordinary case in geospatial work,
-   and it depends on each source still knowing what it was. Satisfying 1 does
-   not satisfy this: a prim bound to the frame its coordinates are in says
-   nothing about the frame they were converted from.
+   authored in.** The three above describe how a prim's coordinates are to be
+   read now. This records what the data arrived as, so that a later ingest,
+   export or round trip can reproject it correctly, or decline to. Bringing
+   disparate sources into one common frame without permanently altering the
+   originals is the ordinary case in geospatial work, and it depends on each
+   source still knowing what it was. A prim bound to the frame its coordinates
+   are in says nothing about the frame they were converted from.
 
 USD currently provides none of these as first-class features.
 Users must fall back to custom metadata, primvars,
