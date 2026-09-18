@@ -452,6 +452,31 @@ Neither is the time sample used to animate content in a scene.
 
 ### Functional requirements
 
+<!--
+Editing note for this section, for people and for agents alike.
+
+Requirement numbers are identifiers, frozen at the review baseline of the pull
+request that introduced this section. Other documents, comments and test
+fixtures cite them.
+
+- Do not renumber, and do not insert a requirement between two existing numbers.
+- A new requirement takes the next unused number (30 onward) and is placed under
+  the group heading it belongs to, even where that breaks the numeric sequence
+  within that group.
+- A withdrawn requirement keeps its number and its title; its sentence is
+  replaced by "Withdrawn." and one line saying why.
+- When citing a requirement anywhere outside this file, give number and title
+  together: "requirement 21, Never placed by a guess".
+- Each requirement is one sentence. The italic text after it is a case from
+  practice and carries no requirement of its own. No mechanism belongs in a
+  requirement.
+- Do not decide an open question in Terms or in a requirement. The table at the
+  end of this section names the requirements each open question is decided
+  against; the decision is made there, not here.
+
+Renumbering happens once, at merge, with a published old-to-new mapping.
+-->
+
 What a solution has to do, stated without reference to any mechanism.
 These are what an implementation is checked against,
 and the terms on which a design change is argued:
@@ -857,19 +882,38 @@ and carries no requirement of its own.
 
 **What the open questions are decided against**
 
+<!--
+Editing note for this table, for people and for agents alike.
+
+Open question numbers are identifiers, frozen at the review baseline of the
+pull request that introduced this section, and "open question N" anywhere
+outside this file means this table, not the older list under Design
+considerations.
+
+- Do not renumber or reorder. A new open question takes the next unused number
+  at the bottom of the table.
+- A decided question keeps its number and its line; the "Decided against"
+  column gains "Decided:" and a pointer to where the decision paragraph lives.
+  Do not delete it.
+- A decision is recorded in that paragraph and in the design or runtime text it
+  changes. It is not recorded by rewording a requirement or a Term.
+- When citing an open question anywhere outside this file, give number and a
+  short name together: "open question 2, the asset's native CRS".
+-->
+
 An answer to any of these is argued as whether it meets the requirements named.
 
-| Question | Decided against |
-|---|---|
-| May a position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 20, 22 |
-| How does the scene mark a position: by the binding on the prim, by a marked transform, or by a typed attribute of its own? | 9, 11, 12, 20 |
-| Where is an asset's own native CRS recorded? | 5, 6, 8 |
-| Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15 |
-| Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27 |
-| Which scene axis carries which CRS component? | 13 |
-| Does localization need a construct of its own? | 2, 4 |
-| Is the consumer's chosen CRS the one the scene resolves into, or a conversion of a result resolved into the CRS the scene names? | 16, 17, 21, 23 |
-| Can a scene resolve into a geographic CRS? | 16, 18, 22 |
+| # | Question | Decided against |
+|--:|---|---|
+| 1 | May a position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 20, 22 |
+| 2 | How does the scene mark a position: by the binding on the prim, by a marked transform, or by a typed attribute of its own? | 9, 11, 12, 20 |
+| 3 | Where is an asset's own native CRS recorded? | 5, 6, 8 |
+| 4 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15 |
+| 5 | Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27 |
+| 6 | Which scene axis carries which CRS component? | 13 |
+| 7 | Does localization need a construct of its own? | 2, 4 |
+| 8 | Is the consumer's chosen CRS the one the scene resolves into, or a conversion of a result resolved into the CRS the scene names? | 16, 17, 21, 23 |
+| 9 | Can a scene resolve into a geographic CRS? | 16, 18, 22 |
 
 ### Schema design
 
