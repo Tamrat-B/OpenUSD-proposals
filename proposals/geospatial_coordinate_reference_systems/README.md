@@ -469,8 +469,10 @@ and carries no requirement of its own.
    A CRS carried in a scene can be read from the scene alone,
    without a lookup against an external registry.
 
-   *An identifier alone leaves its meaning dependent on a registry
-   definition that may be missing or differently versioned
+   *A 2D State Plane zone has a registry code; the compound of that zone,
+   its current realization and its vertical datum often has none,
+   so an identifier alone cannot name the system the data is actually in,
+   and a code that does exist can be missing or differently versioned
    when the scene is next opened.
    This is about the definition. The operation that transforms between
    two CRSs may need resources no scene carries, such as a datum grid;
@@ -481,7 +483,8 @@ and carries no requirement of its own.
    and its definition says nothing about where any particular object sits,
    which way it faces or how large it is.
 
-   *Restating a definition makes the copies that have drifted
+   *Once means once within a layer stack, not once for all of USD.
+   Restating a definition makes the copies that have drifted
    indistinguishable from the ones that were meant to differ.
    A site calibration and an asset placement are the same arithmetic —
    an origin, a rotation, a scale — so only which of the two a number is
@@ -494,23 +497,29 @@ and carries no requirement of its own.
    and separately the coordinate epoch of a coordinate set,
    wherever applicable, and where none is recorded none is assumed.
 
-   *If a point moves at 2 cm per year in a given datum realization,
+   *A national datum such as NAD83(2011) carries its epoch in its definition.
+   A global one such as ITRF or WGS 84 does not: its coordinates move
+   with the plates, and without a coordinate epoch they are good
+   to about 2 m, however precise the survey was.
+   The two dates are different quantities: at 2 cm per year,
    coordinates ten years apart differ by 20 cm,
-   exceeding an assumed 1 cm survey tolerance if motion is ignored.
-   This is a coordinate-epoch effect, not a change of realization;
-   the datum's reference epoch alone does not date the coordinates.*
+   and the datum's reference epoch alone does not date them.*
 
 4. **A site's own grid is a CRS like any other.**
    A project grid — its origin, orientation and scale relative to a geodetic
    CRS, agreed once for a site — can be the CRS its content is expressed in,
    and content in it needs nothing that content in a national grid does not.
 
-   *A construction grid typically reads (1000, 1000) at its origin
-   so that no coordinate on site is negative,
-   and runs its axes along the construction drawings, not grid north.
+   *Construction works in a ground system: an origin on the site,
+   axes along the construction drawings rather than grid north,
+   and a scale of one, so a metre in the field is a metre in the system.
+   Such a grid typically reads (1000, 1000) at its origin
+   so that no coordinate on site is negative.
    Those are properties of the site, shared by every discipline on it.
-   Carrying the grid's relation to a geodetic CRS with its definition
-   is what lets a reader tell grid distances from ground distances.*
+   Placing that system in the world takes an affine adjustment
+   horizontally and an inclined plane vertically; carrying that relation
+   with the grid's definition is what lets a reader tell
+   grid distances from ground distances.*
 
 **Attaching it to content**
 
@@ -528,9 +537,10 @@ and carries no requirement of its own.
    A CRS declared once applies to the content beneath it,
    and part of that content can declare a different one.
 
-   *An asset brought into a project keeps its own native CRS,
-   shared by its descendants and different from the project's
-   and from other assets'.
+   *Assembling georeferenced data nests it: an asset in its own CRS,
+   inside a dataset in another, inside a scene in a third.
+   Each keeps its own native CRS, shared by its descendants
+   and different from what is around it.
    Repeating the declaration for every descendant risks a missed update
    among coordinates intended to share the same CRS.*
 
@@ -540,7 +550,10 @@ and carries no requirement of its own.
 
    *If composition hides a declaration or changes its scope incorrectly,
    an asset's coordinates lose their interpretation or acquire another.
-   An intentional override is different from losing that information.*
+   An intentional override is different from losing that information.
+   OpenUSD's composition rules already guarantee this for any authored
+   property; it is stated here so that an implementation is checked
+   against it rather than assumed to inherit it.*
 
 8. **Brought-in data keeps its coordinates and its CRS.**
    Data authored in one CRS can be brought into a project working in another,
@@ -559,9 +572,10 @@ and carries no requirement of its own.
    authored and moved as ordinary scene content
    by someone who need know no geodesy.
 
-   *A door is offset from its building's origin;
-   a camera turns about the point it stands on;
-   a bollard sits where it sits, relative to something that carries a CRS.
+   *A simulation team georeferences a road scene once, at its origin,
+   and dresses it by moving props with the ordinary widget in ordinary
+   units; no prop carries a coordinate, and nobody dressing the scene
+   touches geodesy. A door is offset from its building's origin the same way.
    The position is where those distances meet the Earth, and what is up
    there is up for all of them: converting the position alone and leaving
    the orientation as authored lays a building on its side at mid-latitudes.
@@ -569,9 +583,9 @@ and carries no requirement of its own.
    move the position and everything beneath it moves with it.*
 
 10. **Offsets along the axes of their position.**
-    An offset beneath a position is measured along the axes that position's
-    CRS defines there, and those axes can be determined from the scene
-    without resolving it.
+    An offset beneath a position is measured along the axes, and at the
+    scale, that position's CRS defines there, and both can be determined
+    from the scene without resolving it.
 
     *A grid's axes differ from true east and north by the grid's convergence
     and scale at that point. Reading grid offsets as east and north
@@ -650,7 +664,10 @@ and carries no requirement of its own.
     a consumer can obtain the result in a CRS of its choosing,
     and a scene can name the CRS it expects to be resolved into.
 
-    *A pipeline crosses UTM zones 11N and 12N.
+    *Data aggregated from several CRSs is useful to a runtime only once
+    it is normalized into one; which one can differ from one resolve
+    to the next, but there is one.
+    A pipeline crosses UTM zones 11N and 12N.
     Read in zone 11N without conversion, the 12N half lands
     away from the endpoints it shares on the ground.
     A GIS host has a project CRS of its own and wants a scene
@@ -664,7 +681,9 @@ and carries no requirement of its own.
     A world position, a bound, an instance, a physics body and a rendered
     image all come from the same resolution, and none of them needs a renderer.
 
-    *"Does this work without a renderer" is the first question
+    *The projection is just the projection: whether its result feeds
+    a renderer or an analytics engine does not change it.
+    "Does this work without a renderer" is the first question
     a GIS or AECO pipeline asks.
     A building that renders in the right place while a spatial query
     still answers from its unconverted coordinates is two scenes, not one.*
@@ -688,7 +707,9 @@ and carries no requirement of its own.
     that records the CRS it was written in and,
     for content that varies over time, how it was sampled.
 
-    *Once a placement has been baked into a matrix,
+    *Whatever the runtime does — the conversion, or disregarding the
+    transforms above a position — requires writing nothing into the scene.
+    Once a placement has been baked into a matrix,
     the intent behind it has collapsed and nothing is left to check against.
     A written-out result that records its CRS resolves again
     to the same place, and a re-resolve does not transform it twice.
@@ -711,13 +732,15 @@ and carries no requirement of its own.
     is part of what this section leaves open, and this requirement is
     what that answer costs or keeps.*
 
-21. **Failure reported, never guessed.**
+21. **Never placed by a guess.**
     A transformation that cannot be computed — no engine, a definition
     that cannot be read or is unsupported, a missing grid,
     a point outside the transformation's domain of validity —
-    is reported, the content is never placed by a substitute,
-    and a result that could only be partly computed is a failure,
-    not a partial placement.
+    never places content by a substitute, a result that could only be
+    partly computed is a failure and not a partial placement,
+    and the failure surfaces where it can be known: in validation
+    for what the authored scene reveals, from the engine for what
+    only resolution can discover.
 
     *A substituted matrix is indistinguishable from a computed one.
     A quiet fallback turns a missing grid file into content
@@ -727,7 +750,10 @@ and carries no requirement of its own.
     returns a plausible number 1,000 m from the intended one,
     in an array the caller has been told succeeded.
     The definitions and bindings survive the failure,
-    so the scene is recoverable in a tool that has what was missing.*
+    so the scene is recoverable in a tool that has what was missing.
+    A malformed definition or a binding to nothing is visible when the
+    scene is authored; whether a grid covers the point, or an engine
+    is present at all, is not, and no authoring API can promise to say so.*
 
 **Staying usable at real sizes**
 
@@ -836,7 +862,7 @@ An answer to any of these is argued as whether it meets the requirements named.
 | Question | Decided against |
 |---|---|
 | May a position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 20, 22 |
-| Is a position carried in the prim's transform, or in a typed attribute of its own? | 9, 11, 12, 20 |
+| How does the scene mark a position: by the binding on the prim, by a marked transform, or by a typed attribute of its own? | 9, 11, 12, 20 |
 | Where is an asset's own native CRS recorded? | 5, 6, 8 |
 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15 |
 | Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27 |
