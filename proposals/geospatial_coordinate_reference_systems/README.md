@@ -128,21 +128,54 @@ rendering pipeline, and standard tooling.
 
 This section provides context for readers unfamiliar with geospatial concepts.
 
-### Geographic vs. Projected CRS
+### Families of CRS
 
-A **Geographic CRS** uses angular coordinates
-(latitude and longitude in degrees)
-on a mathematical model of the Earth's shape (an ellipsoid).
-Example: WGS 84 (EPSG:4326) — the CRS used by GPS.
+ISO 19111:2019 (*Referencing by coordinates*) is the model behind every
+encoding used here: a CRS is a **coordinate system** — axes with directions
+and units — attached to a **datum** that fixes those axes to the Earth.
+OGC WKT 2 is its text serialization, and EPSG codes identify its well-known
+instances.
 
-A **Projected CRS** mathematically projects
-the curved Earth surface onto a flat 2D plane.
-Coordinates are linear (metres or feet).
-Example: UTM zone 11N (EPSG:32611) — used for Southern California.
+| Family | Coordinate system | Origin | Typical use | Example |
+|--------|-------------------|--------|-------------|---------|
+| **Geographic** | `CS[ellipsoidal]`, angular + height | Ellipsoid | GNSS output, web mapping, global exchange | WGS 84 (EPSG:4979) |
+| **Geocentric** | `CS[Cartesian, 3]`, linear | Earth's centre of mass | GNSS processing, datum transformation | ITRF2020 (EPSG:9988) |
+| **Projected** | `CS[Cartesian, 2]`, linear | Projection false origin | National mapping, GIS, civil engineering | UTM zone 11N (EPSG:32611) |
+| **Engineering** | `CS[Cartesian, 2\|3]`, linear | Arbitrary, stated by the datum | BIM and CAD authoring, plant layouts | Construction site grid |
 
-Every projected CRS contains a base geographic CRS,
-a projection method (e.g., Transverse Mercator, Lambert Conformal Conic),
-and projection parameters (central meridian, scale factor, false easting, etc.).
+A projected CRS always contains a base geographic CRS, a projection method
+(e.g., Transverse Mercator, Lambert Conformal Conic) and its parameters.
+An engineering CRS has no geodetic relationship of its own — architects
+author in one from the first day of a project — and acquires one only when
+something anchors it.
+
+A **derived CRS** is any of these obtained from another by a named
+conversion: a site calibration over a projected CRS, a topocentric plane
+over a geographic one. It is a complete CRS, not a transformation layered
+on one.
+
+#### Grid and ground coordinates
+
+A projection cannot flatten a curved surface without distorting it.
+
+**Distance.** The **grid scale factor** of the projection times the
+**elevation factor** — the survey is measured at the site's height, the
+projection computed on the ellipsoid — gives the **combined scale factor**.
+A **grid** coordinate carries that distortion; a **ground** coordinate
+matches a tape measure on site. Near Paris on Lambert-93 at 77.5 m the
+factor is 0.999881 (−118.7 ppm): a kilometre on the ground is 999.881 m on
+the grid.
+
+**Direction.** **Grid convergence** is the angle between grid north — the
+northing axis of the projection — and true north. It is zero on the central
+meridian and grows away from it: about 31 arcmin at the same site, some 9 m
+over a kilometre. A bearing read off a national grid is a grid bearing, and
+when a scene says +Y is north it means grid north of the bound CRS.
+
+Survey and construction work in ground coordinates, regional GIS in grid
+coordinates. A CRS states which of the two its numbers are and where its
+axes point, and both are properties of the site, not of any object placed
+in it.
 
 ### CRS encodings: OGC WKT, EPSG, and WKID
 
@@ -159,22 +192,38 @@ This proposal uses **OGC WKT 2** (ISO 19162:2019)
 as the canonical CRS encoding,
 with EPSG authority identifiers embedded within the WKT via `ID["EPSG", code]`.
 
-### 3D CRS types
+### CRS types supported in USD
 
-All CRS definitions in this proposal must be 3D.
-The supported types are:
+A USD stage is a flat three-dimensional Cartesian space, and a
+`double3 xformOp:translate` is a length. A CRS is bindable if and only if it
+resolves to **three axes, all carrying length units** — metres or feet,
+never degrees. The criterion is the axes, not a single clause: a
+`COMPOUNDCRS` satisfies it as `CS[Cartesian, 2]` plus `CS[vertical, 1]` and
+never contains a literal `CS[Cartesian, 3]`.
 
-| Type | WKT Keyword | Axes | Example |
-|------|-------------|------|---------|
-| 3D Projected | `COMPOUNDCRS` (PROJCRS + VERTCRS) | Easting, Northing, Up | NAD83 / UTM 11N + NAVD88 height |
-| 3D Geographic | `GEOGCRS` with 3 axes | Lat, Lon, Height | WGS 84 (EPSG:4979) |
-| 3D Geocentric (ECEF) | `GEODCRS` | X, Y, Z | ITRF2020 |
-| 3D Engineering / Local | `DERIVEDPROJCRS` | Local X, Y, Z | Site calibration grid |
+Five types meet it. **GROUND** means one scene unit is one unit measured on
+site, **GRID** one unit of a map projection, **GLOBE** a single Cartesian
+frame for the whole Earth.
 
-For dynamic datums (time-dependent reference frames),
-WKT 2 supports the `COORDINATEMETADATA` wrapper
-with `FRAMEEPOCH` and `EPOCH` clauses
-for high-precision applications.
+| Type | WKT 2 | Tied to Earth by | Scale | Notes |
+|------|-------|------------------|-------|-------|
+| **Topocentric** | `GEODCRS` + `BASEGEOGCRS`, EPSG 9837 | Tangent plane at a stated latitude, longitude and height | GROUND | Closest fit for a single site: flat, 1:1, no map distortion |
+| **Engineering + geo-anchor** | `ENGCRS` with `EDATUM[ANCHOR[...]]` | A geolocation schema in the USD file | GROUND | Native state of a BIM export; `ANCHOR` is free text, so no geodetic library will reproject it |
+| **Derived, site calibration** | `DERIVEDPROJCRS`, EPSG 9624 | Affine fit over a projected CRS | GRID → GROUND | The same tie written so it *can* be computed; also how ISO/TS 15143-4 models a worksite localization |
+| **Projected / compound** | `COMPOUNDCRS` (`PROJCRS` + `VERTCRS`) | Map projection plus vertical datum | GRID | What city-scale GIS delivers; one scene unit is not one unit on the ground |
+| **Geocentric (ECEF)** | `GEODCRS`, `CS[Cartesian, 3]` | Earth's centre of mass | GLOBE | Coordinates of order 6.4 × 10⁶ m; depends entirely on [Precision handling](#precision-handling) |
+
+**3D Geographic is excluded.** `GEOGCRS` with `CS[ellipsoidal, 3]` is a valid
+and essential CRS — it carries the datum, its realization and its epoch —
+but two of its three axes are angles. Binding it invites a runtime to read a
+latitude of 48.8584 as 48 metres, and reprojection from it fails silently
+rather than loudly: PROJ returns infinities. It belongs one level down, as
+the `BASEGEOGCRS` of a topocentric or projected CRS.
+
+For dynamic datums, WKT 2 carries the frame epoch inside the CRS as
+`DYNAMIC[FRAMEEPOCH[...]]` and the epoch of a coordinate set in the
+`COORDINATEMETADATA` wrapper as `EPOCH[...]`, as shown in Appendix A.
+`COORDINATEMETADATA` is not itself a CRS and cannot be bound.
 
 ## Case study for the WGS 84 approach
 
