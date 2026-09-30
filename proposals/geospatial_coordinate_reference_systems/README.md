@@ -472,7 +472,7 @@ request that introduced this section. Other documents, comments and test
 fixtures cite them.
 
 - Do not renumber, and do not insert a requirement between two existing numbers.
-- A new requirement takes the next unused number (30 onward) and is placed under
+- A new requirement takes the next unused number and is placed under
   the group heading it belongs to, even where that breaks the numeric sequence
   within that group.
 - A withdrawn requirement keeps its number and its title; its sentence is
@@ -480,8 +480,8 @@ fixtures cite them.
 - When citing a requirement anywhere outside this file, give number and title
   together: "requirement 21, Never placed by a guess".
 - Each requirement is one sentence. The italic text after it is a case from
-  practice and carries no requirement of its own. No mechanism belongs in a
-  requirement.
+  practice and carries no requirement of its own. Requirements state observable
+  outcomes; any required encoding constraint must be explicit and reviewed.
 - Do not decide an open question in Terms or in a requirement. The table at the
   end of this section names the requirements each open question is decided
   against; the decision is made there, not here.
@@ -489,7 +489,8 @@ fixtures cite them.
 Renumbering happens once, at merge, with a published old-to-new mapping.
 -->
 
-What a solution has to do, stated without reference to any mechanism.
+What a solution has to do, including the explicitly proposed WKT encoding
+constraints in requirements 2 and 31.
 These are what an implementation is checked against,
 and the terms on which a design change is argued:
 it either serves one of these or it does not.
@@ -499,6 +500,13 @@ the table at the end of this section names the requirements each one is decided 
 Each requirement is one sentence.
 The italic text that follows it is rationale or a case from practice,
 and carries no requirement of its own.
+
+These requirements constrain the geospatial data model and normative runtime
+behavior, including resolved queries; they do not prescribe callable APIs or
+an implementation architecture. Retained design sketches and prototype code
+later in this document do not settle the open questions or establish that
+the model is complete. An applied API schema is a USD data-model category,
+distinct from a callable programming interface.
 
 **The CRS itself**
 
@@ -516,35 +524,43 @@ and carries no requirement of its own.
    requirement 21 says what happens then.*
 
 2. **Defined once, and describing no object.**
-   A CRS used in many places is defined once and referred to,
-   and its definition says nothing about where any particular object sits,
-   which way it faces or how large it is.
+   A complete CRS or coordinate-metadata definition used in many places
+   is authored once and referred to, describes no object-specific placement,
+   orientation or scale, and has its authored WKT as the sole authored authority
+   for the information that WKT determines.
 
-   *Once means once within a layer stack, not once for all of USD.
-   Restating a definition makes the copies that have drifted
-   indistinguishable from the ones that were meant to differ.
-   A site calibration and an asset placement are the same arithmetic —
-   an origin, a rotation, a scale — so only which of the two a number is
-   tells a reader where to change it.
-   The test: if the number is needed to read a position in the CRS,
-   it belongs to the CRS; if it only puts one object somewhere, it is placement.*
+   *The unit of sharing is a complete WKT value within a layer stack.
+   Distinct coordinate-metadata values can embed the same CRS definition;
+   two sets using that CRS at different coordinate epochs are one example.
+   This does not provide one independently editable copy of every embedded
+   component: a WKT override replaces the complete value, so an override intended
+   to change an epoch can also mask a later CRS correction in a weaker layer.
+   Extracting information for a query or cache does not create another authored
+   authority, and normalization cannot infer which separate definitions were
+   intended to change together.
+   A site calibration and an asset placement can involve the same arithmetic —
+   an origin, a rotation, a scale — so their roles must remain distinguishable.
+   A calibration defines the shared coordinate system; a placement puts a
+   particular object in it.*
 
 3. **Datum, realization and epoch.**
    The scene can identify the datum realization and its reference epoch,
    and separately the coordinate epoch of a coordinate set,
    wherever applicable, and where none is recorded none is assumed.
 
-   *A national datum such as NAD83(2011) carries its epoch in its definition.
-   A global one such as ITRF or WGS 84 does not: its coordinates move
-   with the plates, and without a coordinate epoch they are good
-   to about 2 m, however precise the survey was.
-   The two dates are different quantities: at 2 cm per year,
-   coordinates ten years apart differ by 20 cm,
-   and the datum's reference epoch alone does not date them.*
+   *A dynamic reference frame's reference epoch and the coordinate epoch
+   of a set expressed in that frame are different quantities.
+   For example, an ITRF2020 definition carries a frame reference epoch of 2015,
+   while coordinates expressed in it can have a coordinate epoch of 2026.5.
+   The first does not supply the second: at 2 cm per year, coordinates ten
+   years apart differ by 20 cm.
+   An observation timestamp or a USD time code does not by itself establish
+   the coordinate epoch either.*
 
 4. **A site's own grid is a CRS like any other.**
-   A project grid — its origin, orientation and scale relative to a geodetic
-   CRS, agreed once for a site — can be the CRS its content is expressed in,
+   A project grid — its origin, orientation and scale relative to a geodetic or
+   projected CRS, and, where applicable, its heights relative to a vertical CRS,
+   agreed once for a site — can be the CRS its content is expressed in,
    and content in it needs nothing that content in a national grid does not.
 
    *Construction works in a ground system: an origin on the site,
@@ -557,6 +573,26 @@ and carries no requirement of its own.
    horizontally and an inclined plane vertically; carrying that relation
    with the grid's definition is what lets a reader tell
    grid distances from ground distances.*
+
+<!-- Start a separate list so the new identifier renders as 31. -->
+
+31. **Same definition, same meaning.**
+    CRS and coordinate-metadata definitions are authored in the proposal's
+    prescribed WKT normal form, so OGC-permitted syntactic variants of the same
+    definition normalize to identical text without losing represented information
+    or changing coordinate interpretation or resolved coordinate results.
+
+    *One writer produces compact WKT and another adds indentation and line breaks;
+    OGC WKT also permits keyword case and delimiter variants under its syntax rules.
+    These differences need not imply different coordinate definitions.
+    A prescribed normal form makes identical serialized definitions comparable,
+    while requiring valid WKT from other tools to be normalized before conforming
+    authoring. That is an additional interchange constraint, not a restriction OGC
+    already imposes. Its profile is open question 10.
+    Changing an axis order, unit, datum or coordinate epoch can change the meaning;
+    normalization cannot erase those differences, or discard names and remarks
+    merely to make text equal. Identical text does not establish that a requested
+    coordinate operation can be omitted.*
 
 **Attaching it to content**
 
@@ -786,7 +822,8 @@ and carries no requirement of its own.
 21. **Never placed by a guess.**
     A transformation that cannot be computed — no engine, a definition
     that cannot be read or is unsupported, a missing grid,
-    a point outside the transformation's domain of validity —
+    a point outside the transformation's domain of validity,
+    a requested change of coordinate epoch that the operation does not model —
     never places content by a substitute, a result that could only be
     partly computed is a failure and not a partial placement,
     and the failure surfaces where it can be known: in validation
@@ -800,6 +837,8 @@ and carries no requirement of its own.
     whose second point falls outside the operation's domain and is left in place
     returns a plausible number 1,000 m from the intended one,
     in an array the caller has been told succeeded.
+    An operation that ignores a requested coordinate-epoch change can likewise
+    return plausible coordinates while failing to perform the requested operation.
     The definitions and bindings survive the failure,
     so the scene is recoverable in a tool that has what was missing.
     A malformed definition or a binding to nothing is visible when the
@@ -978,6 +1017,11 @@ An answer to any of these is argued as whether it meets the requirements named.
 | 7 | Does localization need a construct of its own? | 2, 4 |
 | 8 | Is the consumer's chosen CRS the one the scene resolves into, or a conversion of a result resolved into the CRS the scene names? | 16, 17, 21, 23 |
 | 9 | Can a scene resolve into a geographic CRS? | 16, 18, 22 |
+| 10 | What WKT normalization profile preserves the represented information, and what comparisons can its normal form establish? | 1, 2, 3, 21, 27, 28, 29, 31 |
+| 11 | Which coordinate values or domains does a definition describe, how is complete coordinate metadata associated with them, and how do that association and its scope compose? | 2, 3, 5, 6, 7, 19, 20, 21, 27, 30 |
+| 12 | Where is the dependency declaration recorded, what content does it cover, and how is it maintained through composition and export? | 7, 19, 25, 26, 27 |
+| 13 | What do resolved coordinates, frames, geometry and bounds guarantee, and how are operation choice, accuracy, approximation and failures made comparable? | 17, 18, 21, 22, 23, 24, 28, 29 |
+| 14 | What coordinate context, sampling and data associations must an explicit export preserve so another reader can interpret it without repeating the resolution? | 18, 19, 20, 27, 30 |
 
 Open question 1 asks whether authored positions, including time samples,
 can retain geographic coordinates. A geographic origin in a CRS definition
@@ -1000,6 +1044,59 @@ requirements 9 and 11 and from conformance under requirement 15.
 If a consumer requests another output CRS, the relationship to the project's
 working CRS is also subject to open question 8. This clarification records
 the workflow to support, not an accepted storage or evaluation mechanism.
+
+Open questions 2 and 5 must account for complete authored xform stacks, including
+multiple translations, rotations, scales and pivots, rather than relying on an
+unidentified translate. A runtime boundary that excludes ancestor xformOps and
+an authoring helper that inserts a reset into the source are different behaviors.
+Requirement 19 requires resolution to leave authored data unchanged; requirement
+25 constrains the effect of adding geospatial information on unaware consumers.
+The role of ancestor CRS bindings is a separate question from transform
+accumulation and remains part of open questions 3 and 8.
+
+A construction project in a calibrated site grid, containing a design in that
+grid and survey control retained in a regional CRS, is one case for that review.
+The group needs to determine what the enclosing project's binding means for the
+survey and for a consumer selecting another output CRS. This example does not
+prescribe an intermediate conversion through every ancestor CRS.
+
+Open question 10 covers the additional authored-text constraint in requirement
+31 and its tradeoffs. OGC's permitted syntax does not itself prescribe a unique
+serialization. Complete-WKT identity, equivalence of an embedded CRS and the
+identity of a requested coordinate operation are distinct comparisons.
+
+Open question 11 includes the allowed WKT object forms, including
+COORDINATEMETADATA, and their association with positions, arrays or dataset
+coordinate domains. A coordinate epoch, a frame reference epoch, an observation
+time and a USD time code have different roles. The review must establish which
+mixed-epoch and multiple-domain cases are required, rather than assuming one
+prim or file always has one context. Binding cardinality, inheritance, explicit
+absence, invalid targets and namespace remapping also need defined outcomes. This question does
+not presume a separate epoch attribute or a new general measurement schema.
+
+Open questions 4 and 6 must reconcile CRS axes, units and vertical references
+with scene conventions and dataset component order. A third stored number does
+not supply an undeclared height reference, and a CRS declaration does not by
+itself identify which stored component represents each ordinate.
+Open question 1 must also reconcile requirement 12's prohibition on reading
+angles as lengths with requirement 25's unchanged reading by an unaware consumer.
+
+Open question 12 concerns the authored carrier and coverage required by
+requirement 26. Discovering bindings by traversing the scene is not the promised
+declaration, and unloaded content is not evidence of no dependency.
+
+Open question 13 separates a coordinate result from an oriented frame, a spatial
+bound or transformed geometry. Requested tolerance, attributed operation accuracy
+and established approximation error are different quantities. A new property is
+not implied for each; the result and failure contract must identify their roles.
+The comparison rule must reconcile requirements 28 and 29 when engines select
+different valid operations, and define a distance measure for geographic outputs.
+
+Open question 14 distinguishes explicit geospatial export from composition
+flattening. The exported coordinates, their complete context and the preserved
+measurement/time associations must explain the result without a private
+"already resolved" convention. These are model and runtime decisions to complete
+against the requirements before implementation.
 
 ### Schema design
 
