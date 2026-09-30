@@ -235,7 +235,7 @@ of common CRS types are in [Appendix A](#appendix-a-wkt-examples).
 
 #### WGS 84 ENU (east-north-up) local tangent plane
 
-The following WKT string encodes, as a CRS, the same georeference that the `WGS84ReferencePositionAPI` [case study](#case-study-for-the-wgs-84-approach) above carries as a scene-level position. It is here to show what WKT 2 can express, and not to offer a second way of placing content: a CRS names the system a prim's coordinates are expressed in, and the prim's own transform gives its position within that system. The two compose, and neither replaces the other. It defines a 3D local coordinate system centered at the Eiffel Tower with a Y-Up orientation. Note that this example encodes the up axis in the CRS itself, while [Stage metadata: metersPerUnit and upAxis](#stage-metadata-metersperunit-and-upaxis) below recommends `upAxis = "Z"` for geospatial scenes, and the worked examples in this document set it. Which of the two carries the up axis is [open question 1](#open-questions).
+The following WKT string encodes, as a CRS, the same georeference that the `WGS84ReferencePositionAPI` [case study](#case-study-for-the-wgs-84-approach) above carries as a scene-level position. It is here to show what WKT 2 can express, and not to offer a second way of placing content: a CRS names the system a prim's coordinates are expressed in, and the prim's own transform gives its position within that system. The two compose, and neither replaces the other. It defines a 3D local coordinate system centered at the Eiffel Tower with a Y-Up orientation. The CRS retains its declared coordinate meaning. Authored unit and up-axis conformance is the decision on question 4; remaining component mappings are open question 6. See [Stage metadata](#stage-metadata-metersperunit-and-upaxis).
 
 ```lisp
 GEODCRS["Y-Up Local Tangent Plane at Eiffel Tower",
@@ -722,9 +722,8 @@ distinct from a callable programming interface.
     a Y-up asset from a graphics pipeline sits in a Z-up survey.
     Each is a fixed relation, and an implementation that guessed it
     would place content at a scale or on its side.
-    Whose job the correction is — recorded at authoring time,
-    as OpenUSD's own guidance for the up axis has it today,
-    or applied by the reader — is left open here.*
+    The decision on question 4 assigns authoring of unit and up-axis
+    correctives to the writer or assembler, following UsdGeom.*
 
 15. **Placement separate from conformance.**
     Where an instance sits is recorded separately
@@ -1008,42 +1007,37 @@ An answer to any of these is argued as whether it meets the requirements named.
 
 | # | Question | Decided against |
 |--:|---|---|
-| 1 | May a position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 17, 18, 19, 20, 22, 30 |
+| 1 | May a model-placement position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 17, 18, 19, 20, 22, 30 |
 | 2 | How does the scene mark a position: by the binding on the prim, by a marked transform, or by a typed attribute of its own? | 9, 11, 12, 20 |
-| 3 | Where is an asset's own native CRS recorded? | 5, 6, 8, 9, 11, 15, 16, 19 |
-| 4 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15 |
+| 3 | What role does an enclosing project's CRS binding have for content with its own native CRS binding? | 5, 6, 8, 9, 11, 15, 16, 19 |
+| 4 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15; Decided: [writer or assembler](#decision-on-question-4-authored-unit-and-up-axis-conformance) |
 | 5 | Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27 |
-| 6 | Which scene axis carries which CRS component? | 13 |
+| 6 | What scene-axis mapping applies to CRS component sets other than easting, northing and up? | 13 |
 | 7 | Does localization need a construct of its own? | 2, 4 |
 | 8 | Is the consumer's chosen CRS the one the scene resolves into, or a conversion of a result resolved into the CRS the scene names? | 16, 17, 21, 23 |
 | 9 | Can a scene resolve into a geographic CRS? | 16, 18, 22 |
 | 10 | What WKT normalization profile preserves the represented information, and what comparisons can its normal form establish? | 1, 2, 3, 21, 27, 28, 29, 31 |
-| 11 | Which coordinate values or domains does a definition describe, how is complete coordinate metadata associated with them, and how do that association and its scope compose? | 2, 3, 5, 6, 7, 19, 20, 21, 27, 30 |
+| 11 | Which coordinate properties does a CRS binding describe, and how is complete coordinate metadata associated with those values through composition? | 2, 3, 5, 6, 7, 19, 20, 21, 27, 30 |
 | 12 | Where is the dependency declaration recorded, what content does it cover, and how is it maintained through composition and export? | 7, 19, 25, 26, 27 |
 | 13 | What do resolved coordinates, frames, geometry and bounds guarantee, and how are operation choice, accuracy, approximation and failures made comparable? | 17, 18, 21, 22, 23, 24, 28, 29 |
 | 14 | What coordinate context, sampling and data associations must an explicit export preserve so another reader can interpret it without repeating the resolution? | 18, 19, 20, 27, 30 |
 
-Open question 1 asks whether authored positions, including time samples,
-can retain geographic coordinates. A geographic origin in a CRS definition
-does not settle that question. Reporting resolved positions in geographic
-coordinates is covered by requirement 18, Coordinates back out;
-a geographic Target CRS is open question 9.
-Open questions 1 and 2 both have to satisfy requirement 20,
-Positions between recorded moments.
-The geographic measurement workflows also test preservation and access
-under requirement 30, Measurements remain usable as data; retaining
-geographic data only as a basemap or preconverted visualization does not
-exercise those analytical uses.
+Open question 1 concerns positions used to place model content, including
+time-sampled positions. Measured geographic coordinates remain native data under
+requirements 8, 12, 19 and 30, with angular values kept outside ordinary translates.
+Support for measured geographic data does not settle whether a
+model-placement position may itself be geographic. Its representation is question
+2, and interpolation must satisfy requirement 20. Geographic output coordinates
+are covered by requirement 18; a geographic Target CRS remains question 9.
 
-Open question 3 concerns the CRS that interprets currently authored
-coordinates and its relationship to project-specific placement.
-The GIS example proposes conversion into project coordinates followed by
-adjustments in that coordinate system. Its recording and evaluation rules
-must distinguish those adjustments from inherited offsets under
-requirements 9 and 11 and from conformance under requirement 15.
-If a consumer requests another output CRS, the relationship to the project's
-working CRS is also subject to open question 8. This clarification records
-the workflow to support, not an accepted storage or evaluation mechanism.
+For open question 3, requirements 2 and 4 already distinguish a site calibration
+defining the native CRS from placement of an individual object. What remains is
+the role of an enclosing project's CRS binding for independently bound content.
+Project-specific placement
+must satisfy requirement 8 while remaining distinct from inherited offsets under
+requirements 9 and 11 and source conformance under requirement 15. The relationship
+between the project's working CRS and a consumer's requested output remains
+question 8; no evaluation order is decided here.
 
 Open questions 2 and 5 must account for complete authored xform stacks, including
 multiple translations, rotations, scales and pivots, rather than relying on an
@@ -1065,19 +1059,21 @@ Open question 10 covers the additional authored-text constraint in requirement
 serialization. Complete-WKT identity, equivalence of an embedded CRS and the
 identity of a requested coordinate operation are distinct comparisons.
 
-Open question 11 includes the allowed WKT object forms, including
-COORDINATEMETADATA, and their association with positions, arrays or dataset
-coordinate domains. A coordinate epoch, a frame reference epoch, an observation
-time and a USD time code have different roles. The review must establish which
-mixed-epoch and multiple-domain cases are required, rather than assuming one
-prim or file always has one context. Binding cardinality, inheritance, explicit
-absence, invalid targets and namespace remapping also need defined outcomes. This question does
-not presume a separate epoch attribute or a new general measurement schema.
+For open question 11, Devin's container example fits the existing prim-based
+bindings and requirements 6–8. Independently georeferenced datasets sharing an
+external container do not require a new binding
+mechanism. What remains is identifying the coordinate properties described by a
+binding and associating complete coordinate metadata with them through composition.
+Allowed WKT object forms, including COORDINATEMETADATA, and coordinate-epoch scope
+and representation still need agreement. A coordinate epoch, frame reference
+epoch, observation time and USD time code have distinct roles.
 
-Open questions 4 and 6 must reconcile CRS axes, units and vertical references
-with scene conventions and dataset component order. A third stored number does
-not supply an undeclared height reference, and a CRS declaration does not by
-itself identify which stored component represents each ordinate.
+For open question 6, requirement 13 already fixes X as easting, Y as northing
+and Z as up. Northing-first source storage does not change that mapping. What
+remains is the mapping for other CRS component
+sets, such as geocentric axes; this question does not decide whether geographic
+model-placement positions or a geographic Target CRS are permitted under
+questions 1 and 9.
 Open question 1 must also reconcile requirement 12's prohibition on reading
 angles as lengths with requirement 25's unchanged reading by an unaware consumer.
 
@@ -1092,11 +1088,29 @@ not implied for each; the result and failure contract must identify their roles.
 The comparison rule must reconcile requirements 28 and 29 when engines select
 different valid operations, and define a distance measure for geographic outputs.
 
+For operations requiring external resources, question 13 must also establish
+what authored WKT model or operation references require a consumer to honor,
+how the intended model/version and its resources are identified and resolved,
+and how their applicability is respected. Requirements 1 and 21 allow external
+resources and define failure; they do not specify that resource contract.
+Whether epoch-dependent transformations belong in the initial scope remains
+for group review; no deferral or new USD resource representation is decided here.
+
 Open question 14 distinguishes explicit geospatial export from composition
 flattening. The exported coordinates, their complete context and the preserved
 measurement/time associations must explain the result without a private
 "already resolved" convention. These are model and runtime decisions to complete
 against the requirements before implementation.
+
+#### Decision on question 4: authored unit and up-axis conformance
+
+The writer or scene assembler authors the correctives needed to bring model
+content into the destination stage's units and up axis, following UsdGeom.
+Correctives may be authored at the assembly boundary without rewriting the
+source asset. Readers honor those authored transforms; geospatial resolution
+does not automatically repair asset unit or up-axis mismatches. This conformance
+is separate from instance placement under requirement 15 and from interpreting
+the units declared by a CRS or performing a requested coordinate conversion.
 
 ### Schema design
 
@@ -1504,22 +1518,15 @@ target_x, target_y, target_z = transformer.transform(usd_x, usd_z, usd_y)
 
 ### Stage metadata: metersPerUnit and upAxis
 
-The `metersPerUnit` stage metadata defines the unit scale
-for the entire stage.
-When a CRS uses units other than metres
-(e.g., US survey feet for State Plane CRS),
-the CRS's unit definition in the WKT string
-should be consistent with `metersPerUnit`,
-or the runtime must apply a unit conversion.
+Under requirement 14, a CRS binding changes neither `metersPerUnit` nor `upAxis`.
+The decision on question 4 assigns authored unit and up-axis correctives to the
+writer or assembler; readers honor those transforms. This is separate from
+interpreting coordinates in their declared CRS units or performing a requested
+coordinate conversion. Scene conventions do not relabel source CRS coordinates.
 
-The `upAxis` metadata ("Y" or "Z") defines the stage's up direction.
-Most geospatial CRS conventions use Z-up,
-so scenes authored with geospatial CRS
-should typically set `upAxis = "Z"`.
-
-The precise interaction between stage units/axes
-and CRS-defined units/axes requires further specification
-and is flagged as an [open question](#open-questions).
+Requirement 13 fixes the logical mapping for easting, northing and up,
+independently of source storage order. Functional open question 6 concerns
+mappings for other CRS component sets.
 
 ### Transform stack and resetXformStack
 
@@ -1696,22 +1703,14 @@ and informed the final design.
 
 ### Open questions
 
-1. **Interaction with `metersPerUnit` and `upAxis`.**
-   How should the CRS's unit definition interact with `metersPerUnit`?
-   Should the runtime enforce consistency, convert automatically,
-   or leave it to the authoring tool?
-   The same question applies to the up axis, and this document
-   currently answers it both ways: the WGS 84 ENU example encodes
-   Y-up in the CRS, while the stage metadata section recommends
-   `upAxis = "Z"` and the scene examples use it.
-   A path forward is to decide whether the CRS may declare an up axis
-   at all, or whether the stage metadata is always authoritative
-   and the CRS is read in its own declared axes.
+1. **Unit and up-axis conformance.**
+   The decision on functional question 4 assigns authored correctives to the
+   writer or assembler. It does not change the CRS's declared coordinate meaning.
 
 2. **Axis mapping.**
-   Geospatial CRS axis orders vary
-   (some are Easting/Northing, others Northing/Easting).
-   How does this interact with USD's coordinate conventions?
+   Requirement 13 fixes easting/northing/up independently of source storage or
+   declared CRS axis order. Functional open question 6 concerns mappings for
+   other CRS component sets.
 
 3. **Third-party library abstraction.**
    [Runtime coordinate transformation](#runtime-coordinate-transformation)
