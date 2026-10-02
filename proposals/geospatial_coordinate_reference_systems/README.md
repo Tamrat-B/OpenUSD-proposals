@@ -508,6 +508,36 @@ later in this document do not settle the open questions or establish that
 the model is complete. An applied API schema is a USD data-model category,
 distinct from a callable programming interface.
 
+#### Proposed initial scope and roadmap
+
+The initial scope proposed here retains georeferencing, multi-CRS assembly and
+non-visual measurement workflows. Its computational scope is explicitly
+supported conversions determined by the CRS definitions, including
+geographic/projected conversions on the same datum, with heights in the same
+vertical datum, and
+parameter-defined site calibrations carried by those definitions. The Colorado
+site-grid/State Plane + NAVD88 and France CC49/Lambert-93 examples illustrate that
+boundary. It is a capability boundary, not a limit on geographic extent or
+dataset size; the city and global analytical cases under requirement 30 remain
+part of the functional requirements.
+
+Coordinate-epoch representation, interpretation and epoch-dependent resolution
+are proposed for deferral, as are transformations requiring separately specified
+coordinate-operation definitions, external grids or motion models. A request
+requiring an excluded capability reports unsupported operation under requirement
+21 even when an installed engine could compute it. CRS frame-reference-epoch
+information, measurement/observation times and USD time-sampled content retain
+their distinct meanings; none supplies an unrecorded coordinate epoch.
+
+Initial definitions use CRS-only WKT as their authored authority. Coordinate-epoch
+support, including the possible use of COORDINATEMETADATA, is roadmap question
+15. Resource-dependent transformations and then coordinate epochs are proposed
+roadmap additions, without prescribing release numbers or dates. Initial model
+choices must preserve a path to those capabilities. Retained epoch sketches and
+examples elsewhere in this document describe roadmap candidates, not initial
+conformance obligations. This proposed boundary does not complete the data model,
+normalization profile or runtime guarantees for the retained capabilities.
+
 **The CRS itself**
 
 1. **Self-contained definitions.**
@@ -524,17 +554,14 @@ distinct from a callable programming interface.
    requirement 21 says what happens then.*
 
 2. **Defined once, and describing no object.**
-   A complete CRS or coordinate-metadata definition used in many places
+   A complete CRS definition used in many places
    is authored once and referred to, describes no object-specific placement,
    orientation or scale, and has its authored WKT as the sole authored authority
    for the information that WKT determines.
 
    *The unit of sharing is a complete WKT value within a layer stack.
-   Distinct coordinate-metadata values can embed the same CRS definition;
-   two sets using that CRS at different coordinate epochs are one example.
-   This does not provide one independently editable copy of every embedded
-   component: a WKT override replaces the complete value, so an override intended
-   to change an epoch can also mask a later CRS correction in a weaker layer.
+   Its embedded components do not compose independently: a WKT override replaces
+   the complete value and can mask a later correction in a weaker layer.
    Extracting information for a query or cache does not create another authored
    authority, and normalization cannot infer which separate definitions were
    intended to change together.
@@ -544,18 +571,16 @@ distinct from a callable programming interface.
    particular object in it.*
 
 3. **Datum, realization and epoch.**
-   The scene can identify the datum realization and its reference epoch,
-   and separately the coordinate epoch of a coordinate set,
-   wherever applicable, and where none is recorded none is assumed.
+   The scene can identify the datum realization and any frame reference epoch
+   defined by its CRS, without inferring a coordinate epoch for the coordinates.
 
    *A dynamic reference frame's reference epoch and the coordinate epoch
    of a set expressed in that frame are different quantities.
-   For example, an ITRF2020 definition carries a frame reference epoch of 2015,
-   while coordinates expressed in it can have a coordinate epoch of 2026.5.
-   The first does not supply the second: at 2 cm per year, coordinates ten
-   years apart differ by 20 cm.
+   An ITRF2020 definition carries a frame reference epoch of 2015; that describes
+   the frame, not the epoch of every coordinate set expressed in it.
    An observation timestamp or a USD time code does not by itself establish
-   the coordinate epoch either.*
+   the coordinate epoch either. Representation and interpretation of coordinate
+   epochs are roadmap work under question 15, outside the proposed initial scope.*
 
 4. **A site's own grid is a CRS like any other.**
    A project grid — its origin, orientation and scale relative to a geodetic or
@@ -577,7 +602,7 @@ distinct from a callable programming interface.
 <!-- Start a separate list so the new identifier renders as 31. -->
 
 31. **Same definition, same meaning.**
-    CRS and coordinate-metadata definitions are authored in the proposal's
+    CRS definitions are authored in the proposal's
     prescribed WKT normal form, so OGC-permitted syntactic variants of the same
     definition normalize to identical text without losing represented information
     or changing coordinate interpretation or resolved coordinate results.
@@ -589,7 +614,7 @@ distinct from a callable programming interface.
     while requiring valid WKT from other tools to be normalized before conforming
     authoring. That is an additional interchange constraint, not a restriction OGC
     already imposes. Its profile is open question 10.
-    Changing an axis order, unit, datum or coordinate epoch can change the meaning;
+    Changing an axis order, unit or datum can change the meaning;
     normalization cannot erase those differences, or discard names and remarks
     merely to make text equal. Identical text does not establish that a requested
     coordinate operation can be omitted.*
@@ -629,7 +654,9 @@ distinct from a callable programming interface.
 
 8. **Brought-in data keeps its coordinates and its CRS.**
    Data authored in one CRS can be brought into a project working in another,
-   and placed there, with its coordinate values and its CRS unchanged.
+   and given project-specific placement, with its authored coordinate values
+   and CRS unchanged and that placement preserved in any supported requested
+   output CRS.
 
    *This is the hierarchy a GIS runs on: each asset's own CRS,
    the project's CRS, and the placement of the asset in it.
@@ -641,7 +668,10 @@ distinct from a callable programming interface.
    The native CRS interprets the coordinates still authored on the asset;
    preserving it is not a requirement to track earlier CRSs or conversions.
    These instance-specific adjustments are separate from corrections
-   to the source asset's conventions, as required by requirement 15.*
+   to the source asset's conventions, as required by requirement 15.
+   If an imagery dataset is shifted to align with survey control in a project,
+   asking for its locations in another supported CRS retains that adjusted
+   placement; it does not return the unadjusted locations.*
 
 **Saying where content is**
 
@@ -671,7 +701,12 @@ distinct from a callable programming interface.
     misplaces content by an amount that grows with the distance
     from the position to the geometry.
     An editing tool asked to move something one metre east
-    needs those axes without resolving the whole scene.*
+    needs those axes without resolving the whole scene.
+    Bringing independently CRS-bound survey content into the calibrated site's
+    output context must account for the local rotation and scale between those
+    CRSs as well as converting its position. This does not establish that one
+    local affine approximation suffices over an arbitrary extent; the result
+    and approximation guarantees remain question 13.*
 
 11. **Position or offset, and the scene says which.**
     Whether an authored location is a position in a CRS or an offset
@@ -751,9 +786,9 @@ distinct from a callable programming interface.
     A GIS host has a project CRS of its own and wants a scene
     authored elsewhere in it, without editing the scene;
     a viewer with no opinion needs the scene to say what it expects.
-    Whether the consumer's choice is the CRS the scene resolves into,
-    or a conversion applied after the scene resolves into the CRS it names,
-    is a design question the table below sends to requirements 16, 17, 21 and 23.*
+    The proposed decision on question 8 makes the consumer's chosen CRS the
+    output context; how authored project-specific placement participates in
+    that result remains part of question 3.*
 
 17. **The same answer for every consumer.**
     A world position, a bound, an instance, a physics body and a rendered
@@ -819,7 +854,8 @@ distinct from a callable programming interface.
     requirement does not define interpolation or resampling of its values.*
 
 21. **Never placed by a guess.**
-    A transformation that cannot be computed — no engine, a definition
+    A requested transformation outside the supported scope or one that
+    cannot be computed — no engine, a definition
     that cannot be read or is unsupported, a missing grid,
     a point outside the transformation's domain of validity,
     a requested change of coordinate epoch that the operation does not model —
@@ -829,7 +865,10 @@ distinct from a callable programming interface.
     for what the authored scene reveals, from the engine for what
     only resolution can discover.
 
-    *A substituted matrix is indistinguishable from a computed one.
+    *An installed engine's extra capabilities do not expand the supported scope:
+    a request needing a grid or coordinate-epoch support is unsupported in the
+    proposed initial scope even if the engine has the grid or motion model.
+    A substituted matrix is indistinguishable from a computed one.
     A quiet fallback turns a missing grid file into content
     confidently in the wrong place by hundreds of metres.
     For a conversion that shifts by 1,000 m, a two-point batch
@@ -1009,18 +1048,19 @@ An answer to any of these is argued as whether it meets the requirements named.
 |--:|---|---|
 | 1 | May a model-placement position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 17, 18, 19, 20, 22, 30 |
 | 2 | How does the scene mark a position: by the binding on the prim, by a marked transform, or by a typed attribute of its own? | 9, 11, 12, 20 |
-| 3 | What role does an enclosing project's CRS binding have for content with its own native CRS binding? | 5, 6, 8, 9, 11, 15, 16, 19 |
+| 3 | How is project-specific placement of independently CRS-bound content recorded and preserved in a consumer's requested output CRS? | 5, 6, 8, 9, 11, 15, 16, 19; Proposed answer on working context below; placement remains open |
 | 4 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15; Decided: [writer or assembler](#decision-on-question-4-authored-unit-and-up-axis-conformance) |
 | 5 | Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27 |
 | 6 | What scene-axis mapping applies to CRS component sets other than easting, northing and up? | 13 |
-| 7 | Does localization need a construct of its own? | 2, 4 |
-| 8 | Is the consumer's chosen CRS the one the scene resolves into, or a conversion of a result resolved into the CRS the scene names? | 16, 17, 21, 23 |
+| 7 | Does localization need a construct of its own? | 2, 4; Proposed closure for the initial scope: [CRS definition and binding](#proposed-decision-on-question-7-localization-in-the-initial-scope) |
+| 8 | Is the consumer's chosen CRS the one the scene resolves into, or a conversion of a result resolved into the CRS the scene names? | 16, 17, 21, 23; Proposed: [consumer-selected output context](#proposed-decision-on-question-8-consumer-selected-output-context) |
 | 9 | Can a scene resolve into a geographic CRS? | 16, 18, 22 |
 | 10 | What WKT normalization profile preserves the represented information, and what comparisons can its normal form establish? | 1, 2, 3, 21, 27, 28, 29, 31 |
-| 11 | Which coordinate properties does a CRS binding describe, and how is complete coordinate metadata associated with those values through composition? | 2, 3, 5, 6, 7, 19, 20, 21, 27, 30 |
+| 11 | Which authored coordinate properties does a CRS binding describe, and how does that association compose while distinguishing CRS positions from ordinary offsets? | 2, 5, 6, 7, 19, 20, 21, 27, 30; Coordinate-epoch association is roadmap question 15 |
 | 12 | Where is the dependency declaration recorded, what content does it cover, and how is it maintained through composition and export? | 7, 19, 25, 26, 27 |
-| 13 | What do resolved coordinates, frames, geometry and bounds guarantee, and how are operation choice, accuracy, approximation and failures made comparable? | 17, 18, 21, 22, 23, 24, 28, 29 |
+| 13 | For the initially supported conversions, what do resolved coordinates, frames, geometry and bounds guarantee, and how are operation choice, accuracy, approximation and failures made comparable? | 17, 18, 21, 22, 23, 24, 28, 29; External-resource contracts remain roadmap work below |
 | 14 | What coordinate context, sampling and data associations must an explicit export preserve so another reader can interpret it without repeating the resolution? | 18, 19, 20, 27, 30 |
+| 15 | How should a future extension represent and associate coordinate epochs, and what must it specify for epoch-dependent resolution? | 2, 3, 5, 7, 19, 21, 27, 28, 30; Roadmap: [coordinate epochs](#roadmap-question-15-coordinate-epochs), outside the proposed initial scope |
 
 Open question 1 concerns positions used to place model content, including
 time-sampled positions. Measured geographic coordinates remain native data under
@@ -1030,14 +1070,23 @@ model-placement position may itself be geographic. Its representation is questio
 2, and interpolation must satisfy requirement 20. Geographic output coordinates
 are covered by requirement 18; a geographic Target CRS remains question 9.
 
-For open question 3, requirements 2 and 4 already distinguish a site calibration
-defining the native CRS from placement of an individual object. What remains is
-the role of an enclosing project's CRS binding for independently bound content.
-Project-specific placement
-must satisfy requirement 8 while remaining distinct from inherited offsets under
-requirements 9 and 11 and source conformance under requirement 15. The relationship
-between the project's working CRS and a consumer's requested output remains
-question 8; no evaluation order is decided here.
+For open question 3, the proposed answer is that the enclosing project's binding
+supplies working context without replacing an independently bound dataset's
+authored CRS or coordinates. In the Colorado illustration, the design uses the
+calibrated site grid and survey control retains State Plane + NAVD88 coordinates.
+When results are compared in an unchanged supported output CRS, and with no
+separate project-specific adjustment of the survey control, correcting the site's
+calibration changes the design's resolved placement, not the survey control's
+placement. Requirements 2 and 4 already distinguish that shared
+calibration from object-specific placement.
+
+What remains is the representation and application of project-specific placement
+under requirement 8, including its preservation in a different requested output
+CRS. Such placement must remain distinct from inherited offsets under requirements
+9 and 11 and source conformance under requirement 15. An independently bound
+imagery dataset deliberately shifted to align with survey control is a
+distinguishing case: changing output CRS must retain the adjusted placement.
+No carrier or evaluation order for that adjustment is selected here.
 
 Open questions 2 and 5 must account for complete authored xform stacks, including
 multiple translations, rotations, scales and pivots, rather than relying on an
@@ -1045,28 +1094,23 @@ unidentified translate. A runtime boundary that excludes ancestor xformOps and
 an authoring helper that inserts a reset into the source are different behaviors.
 Requirement 19 requires resolution to leave authored data unchanged; requirement
 25 constrains the effect of adding geospatial information on unaware consumers.
-The role of ancestor CRS bindings is a separate question from transform
-accumulation and remains part of open questions 3 and 8.
-
-A construction project in a calibrated site grid, containing a design in that
-grid and survey control retained in a regional CRS, is one case for that review.
-The group needs to determine what the enclosing project's binding means for the
-survey and for a consumer selecting another output CRS. This example does not
-prescribe an intermediate conversion through every ancestor CRS.
+The working-context role of ancestor CRS bindings is separate from transform
+accumulation; it does not settle how project-specific placement is carried.
 
 Open question 10 covers the additional authored-text constraint in requirement
 31 and its tradeoffs. OGC's permitted syntax does not itself prescribe a unique
 serialization. Complete-WKT identity, equivalence of an embedded CRS and the
 identity of a requested coordinate operation are distinct comparisons.
 
-For open question 11, Devin's container example fits the existing prim-based
-bindings and requirements 6–8. Independently georeferenced datasets sharing an
-external container do not require a new binding
-mechanism. What remains is identifying the coordinate properties described by a
-binding and associating complete coordinate metadata with them through composition.
-Allowed WKT object forms, including COORDINATEMETADATA, and coordinate-epoch scope
-and representation still need agreement. A coordinate epoch, frame reference
-epoch, observation time and USD time code have distinct roles.
+For open question 11, distinct coordinate domains represented by separate prims
+with their own bindings fit the existing subtree model and requirements 6–8.
+Sharing an external container does not itself require a new binding mechanism.
+In the proposed initial scope each domain uses a CRS-only WKT definition.
+What remains is identifying the coordinate properties described by a binding,
+their composition and the boundary between CRS positions and ordinary offsets;
+subtree membership alone does not make every vector-valued property a position.
+Coordinate-epoch association is deferred to question 15. Measurement values and
+their positions/times remain associated under requirement 30.
 
 For open question 6, requirement 13 already fixes X as easting, Y as northing
 and Z as up. Northing-first source storage does not change that mapping. What
@@ -1088,13 +1132,15 @@ not implied for each; the result and failure contract must identify their roles.
 The comparison rule must reconcile requirements 28 and 29 when engines select
 different valid operations, and define a distance measure for geographic outputs.
 
-For operations requiring external resources, question 13 must also establish
-what authored WKT model or operation references require a consumer to honor,
+For future operations requiring external resources, the roadmap work associated
+with question 13 must also establish what authored WKT model or operation
+references require a consumer to honor,
 how the intended model/version and its resources are identified and resolved,
-and how their applicability is respected. Requirements 1 and 21 allow external
-resources and define failure; they do not specify that resource contract.
-Whether epoch-dependent transformations belong in the initial scope remains
-for group review; no deferral or new USD resource representation is decided here.
+and how their applicability is respected. A self-contained CRS definition under
+requirement 1 does not supply that operation/resource contract. Those operations
+are excluded by the proposed initial scope; question 13's retained result,
+accuracy and approximation guarantees still need answers. Epoch-dependent
+resolution is roadmap question 15. No USD resource representation is selected.
 
 Open question 14 distinguishes explicit geospatial export from composition
 flattening. The exported coordinates, their complete context and the preserved
@@ -1111,6 +1157,48 @@ source asset. Readers honor those authored transforms; geospatial resolution
 does not automatically repair asset unit or up-axis mismatches. This conformance
 is separate from instance placement under requirement 15 and from interpreting
 the units declared by a CRS or performing a requested coordinate conversion.
+
+#### Proposed decision on question 7: localization in the initial scope
+
+For localization representable by the supported CRS definitions, the proposed
+initial model uses that definition and its ordinary CRS binding, with no separate
+localization construct. Horizontal and vertical calibration parameters describe
+the shared coordinate system under requirements 2 and 4; instance-specific
+placement remains separate under requirements 8 and 15. Grid-based localization
+is roadmap work outside this proposed closure.
+
+#### Proposed decision on question 8: consumer-selected output context
+
+The consumer's requested CRS is proposed as the resolved output context; an
+enclosing project binding does not require first producing a result in its CRS.
+This defines the output's meaning, not an engine's internal computational path.
+Authored project-specific placement must still be preserved under requirement 8;
+its representation and application remain question 3. Converting a model's
+position alone does not satisfy requirements 9 and 10: resolved orientation and
+offset scale must follow their defined coordinate meaning, with the extent and
+approximation guarantees to be established under question 13.
+
+#### Roadmap question 15: coordinate epochs
+
+Coordinate-epoch representation, interpretation and epoch-dependent resolution
+are outside the proposed initial scope, not foreclosed by it. A future extension
+must answer two distinct parts:
+
+- What is the authoritative epoch representation, which coordinate values does
+  it describe, and how does the association behave through composition, reuse
+  and export?
+- What operation/motion-model information, resources and applicability are
+  needed for a requested epoch-dependent result, and what must failure and
+  result reporting establish?
+
+COORDINATEMETADATA is an existing OGC representation to evaluate in that work,
+not a requirement to introduce a separate USD epoch property. If distinct
+metadata values embed the same CRS, complete-WKT sharing can repeat that CRS and
+an epoch-only override can mask a later CRS correction in a weaker layer. The
+future model must expose that tradeoff and respect the authored-authority rule
+in requirement 2. It must keep coordinate epochs distinct from frame reference
+epochs, observation times and USD time codes. The initial model must preserve a
+path to adding this support; no future carrier or model is chosen here.
 
 ### Schema design
 
