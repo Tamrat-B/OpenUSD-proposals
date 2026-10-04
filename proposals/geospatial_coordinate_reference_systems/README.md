@@ -20,8 +20,10 @@ and simulation workflows that require real-world positioning.
 
 The core idea is simple:
 a CRS definition is stored as an OGC WKT string on a typed prim,
-and an applied API schema binds that CRS to any `UsdGeomXformable` prim
-in the scene hierarchy.
+and an applied schema associates that CRS with content in the composed scene.
+For model placement, distinct CRS position, orientation and scale attributes
+precede ordinary USD transforms. Non-visual coordinate datasets use the same
+CRS definitions; their property association remains to be specified.
 Child prims inherit their parent's CRS binding,
 and a runtime reprojection pipeline transforms geometry
 between different CRS zones within a single composed stage.
@@ -174,11 +176,14 @@ The supported types are:
 | 3D Geocentric (ECEF) | `GEODCRS` | X, Y, Z | ITRF2020 |
 | 3D Engineering | `DERIVEDPROJCRS` | Site X, Y, Z | Construction project grid |
 
-For dynamic datums (time-dependent reference frames),
-WKT 2 supports the `COORDINATEMETADATA` wrapper
-with `FRAMEEPOCH` and `EPOCH` clauses
-for high-precision applications.
-Coordinate-epoch use is roadmap question 15, outside the initial CRS-only scope.
+The 2D UTM examples in [Detailed design](#geospatialcrs-typed-schema) and
+[Appendix A](#wgs-84--utm-zone-11n-epsg32611) need reconciliation with this
+3D statement. Their intended use remains to be clarified.
+
+For dynamic datums, a CRS definition can carry a frame reference epoch in
+`DYNAMIC[FRAMEEPOCH[...]]`. A coordinate epoch is separate: the
+`COORDINATEMETADATA` wrapper with `EPOCH[...]` illustrates roadmap question 15,
+outside the initial CRS-only scope.
 
 ## Case study for the WGS 84 approach
 
@@ -238,7 +243,17 @@ normal form; that remains question 10.
 
 #### WGS 84 ENU (east-north-up) local tangent plane
 
-The following WKT string encodes, as a CRS, the same georeference that the `WGS84ReferencePositionAPI` [case study](#case-study-for-the-wgs-84-approach) above carries as a scene-level position. It is here to show what WKT 2 can express, and not to offer a second way of placing content: a CRS names the system a prim's coordinates are expressed in, and the prim's own transform gives its position within that system. The two compose, and neither replaces the other. It defines a 3D local coordinate system centered at the Eiffel Tower with a Y-Up orientation. The CRS retains its declared coordinate meaning. Authored unit and up-axis conformance is the decision on question 4; remaining component mappings are open question 6. See [Stage metadata](#stage-metadata-metersperunit-and-upaxis).
+The following WKT string expresses, as a shared coordinate system, the
+georeference that the `WGS84ReferencePositionAPI`
+[case study](#case-study-for-the-wgs-84-approach) carries as a scene-level
+position. It defines a 3D local coordinate system centered at the Eiffel Tower
+with a Y-Up orientation. A model's separate CRS placement attributes locate it
+within that system; ordinary USD transforms apply after CRS placement and
+resolution under the [decision on question 2](#decision-on-question-2-crs-placement-attributes).
+The CRS definition and model placement retain their distinct roles under
+requirement 2. Authored unit and up-axis conformance is the decision on question
+4; remaining component mappings are open question 6. See
+[Stage metadata](#stage-metadata-metersperunit-and-upaxis).
 
 ```lisp
 GEODCRS["Y-Up Local Tangent Plane at Eiffel Tower",
@@ -339,18 +354,20 @@ It gives those coordinate values their meaning;
 it is not a record of earlier CRSs or of the asset's conversion history.
 
 **Anchor.**
-The prim at which CRS coordinates enter a scene:
+The model-placement prim at which CRS coordinates enter a scene:
 its own location is a position in the CRS bound to it.
-Content beneath an anchor, up to but excluding any nested anchor,
+Model geometry beneath an anchor, up to but excluding any nested anchor,
 is positioned relative to it by offsets in ordinary scene units,
 with no CRS coordinates of its own.
+Measurement-coordinate properties have a separate role under
+[question 11](#decision-on-question-11-coordinate-domains-and-property-roles).
 What constrains the CRS an anchor may be bound to is a design question,
 not part of the term.
 
 **Position and offset.**
 A *position* is a coordinate in a CRS; an *offset* is a distance
 from another prim, in scene units.
-An anchor's location is a position. Content beneath it is offsets,
+An anchor's location is a position. Model geometry beneath it uses offsets,
 up to but excluding any nested anchor.
 
 **Resolution.**
@@ -458,8 +475,9 @@ unless that relationship is explicitly recorded.
 
 7. **Extensible.**
    Third-party CRS libraries (PROJ, GDAL, Esri, Trimble)
-   are abstracted behind an internal API.
-   OpenUSD itself does not validate or interpret WKT strings.
+   can supply coordinate operations. The proposal specifies data and observable
+   runtime behavior, including validation and resolved queries; it does not
+   prescribe callable interfaces or a particular implementation architecture.
 
 8. **Interoperable.**
    The design should facilitate round-trip exchange
@@ -742,8 +760,9 @@ profile and result guarantees identified below still need completion.
     That is the most common way to misplace a georeferenced scene,
     and it is only detectable if the scene distinguishes the two.
     Excluding ancestor xformOps does not discard enclosing CRS context or
-    prohibit intentional project placement under requirement 8; the carrier
-    and composed ordering of that placement remain question 3.*
+    prohibit intentional project placement under requirement 8; the
+    coordinate context of that placement remains question 3; its ordinary USD
+    transforms apply after CRS placement and resolution.*
 
 12. **No angle read as a length.**
     Every coordinate's unit, and the surface its height is measured from,
@@ -815,7 +834,7 @@ profile and result guarantees identified below still need completion.
     8; it is not a conversion of a mandatory project-CRS result.
     This does not prescribe the engine's internal computational path.
     Authored project-specific placement must still be preserved under
-    requirement 8; its carrier and ordering remain question 3.*
+    requirement 8; the adjustment's coordinate context remains question 3.*
 
 17. **The same answer for every consumer.**
     A world position, a bound, an instance, a physics body and a rendered
@@ -972,9 +991,8 @@ profile and result guarantees identified below still need completion.
     reads the same scene it would have read without it.
 
     *Such a consumer does not get a correctly placed scene.
-    It reads the authored coordinates as they stand,
-    which for a projected CRS puts content
-    hundreds of kilometres from the origin.
+    It reads ordinary local geometry and xformOps with their existing meaning;
+    it does not apply the separate CRS placement attributes.
     What this requires is only that adding the CRS information
     changed nothing for it.*
 
@@ -998,6 +1016,8 @@ profile and result guarantees identified below still need completion.
     *A description that nothing validates against is violated at render time.
     Because resolution writes nothing into the scene,
     the CRS intent is still present as data, and can be checked.
+    Detecting nested positions does not by itself make nesting invalid:
+    question 5 permits direct bindings that establish independent anchors.
     What the scene does not record cannot be checked from it:
     plausible offsets authored along the wrong axes
     are caught by comparing against survey control, not by inspection.*
@@ -1012,6 +1032,9 @@ profile and result guarantees identified below still need completion.
     identifying that choice and its attributed accuracy belongs to the
     resolved result. Neither requires duplicating the CRS definition or
     authoring the engine's catalog and grid-management policy in USD.
+    Operation-attributed accuracy, placement-approximation distance under
+    requirement 24 and implementation agreement under requirement 29 are
+    distinct quantities.
     A stated agreement between two implementations means nothing
     until an adopter can tell an operation choice from numerical drift,
     and a lower-accuracy operation quietly substituted for an unavailable one,
@@ -1081,21 +1104,21 @@ An answer to any of these is argued as whether it meets the requirements named.
 Decisions on questions 1 and 5 make existing design intent explicit; geographic
 source placement was also illustrated in the October 2 discussion. Decisions on
 questions 7 and 8 record that discussion. Their rows remain for traceability
-rather than reopening those answers. Questions 3, 11, 13 and 14 separate existing
+rather than reopening those answers. Questions 2, 3, 11, 13 and 14 separate existing
 requirements or agreed behavior from the specific choices still to be made.
 The proposal remains subject to author review.
 
-| # | Question | Decided against |
+| # | Question | Requirements and status |
 |--:|---|---|
 | 1 | May a model-placement position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 17, 18, 19, 20, 22, 30; Decided: [geographic source positions](#decision-on-question-1-geographic-source-positions); encoding remains question 2 |
-| 2 | How does the scene identify a CRS placement's position, orientation and scale: through a binding, marked xformOps or distinct attributes? | 9, 10, 11, 12, 20 |
-| 3 | In what coordinate context is project-specific placement recorded, and how does it compose with CRS placement and ordinary xformOps when the requested output CRS changes? | 5, 6, 8, 9, 11, 15, 16, 19; Decided: [working context and semantic order](#decision-on-question-3-working-context-and-placement-order); carrier and composed ordering remain open |
+| 2 | What field definitions and coordinate conventions specify the CRS placement attributes for position, orientation and scale? | 9, 10, 11, 12, 20; Decided: [distinct CRS placement attributes](#decision-on-question-2-crs-placement-attributes); precise definitions remain open |
+| 3 | What coordinate context applies to project adjustments expressed as ordinary USD transforms when the consumer changes the requested output CRS? | 5, 6, 8, 9, 11, 15, 16, 19; Decided: [working context and placement order](#decision-on-question-3-working-context-and-placement-order); adjustment context remains open |
 | 4 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15; Decided: [writer or assembler](#decision-on-question-4-authored-unit-and-up-axis-conformance) |
 | 5 | Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27; Decided: [direct binding establishes the anchor](#decision-on-question-5-the-position-and-offset-boundary) |
 | 6 | What scene-axis mapping applies to CRS component sets other than easting, northing and up? | 13 |
 | 7 | Does site calibration (localization) need a construct of its own? | 2, 4; Decided: [CRS definition and binding](#decision-on-question-7-site-calibration) |
 | 8 | Is the consumer's chosen CRS the one the scene resolves into, or a conversion of a result resolved into the CRS the scene names? | 16, 17, 21, 23; Decided: [consumer-selected output context](#decision-on-question-8-consumer-selected-output-context) |
-| 9 | Can a scene resolve into a geographic CRS? | 16, 18, 22 |
+| 9 | May a geographic CRS be the resolved scene context for geometry, frames and bounds? | 16, 18, 22; Geographic coordinate queries are already covered by requirement 18; geographic scene context remains open |
 | 10 | What WKT string normalization profile preserves the represented information, and what comparisons can its normal form establish? | 1, 2, 3, 21, 27, 28, 29, 31 |
 | 11 | How are a measurement dataset's source coordinate properties associated with its CRS, separately from model-placement properties and ordinary geometry offsets? | 2, 5, 6, 7, 12, 18, 19, 21, 27, 30; Decided: [composed subtree scope](#decision-on-question-11-coordinate-domains-and-property-roles); measurement-coordinate association remains open, model-placement encoding is question 2; coordinate epochs are roadmap question 15 |
 | 12 | What authored declaration exposes the composed scene's CRS dependency without traversal, including referenced or unloaded content and explicit export? | 7, 19, 25, 26, 27; Coverage is already all placed content under requirement 26; carrier and composition remain open |
@@ -1105,8 +1128,7 @@ The proposal remains subject to author review.
 
 Requirement 18 already permits geographic output coordinates. Question 9 concerns
 the distinct use of a geographic CRS as the resolved scene context for geometry,
-frames and bounds; the generic source/target transformation sketch does not
-specify that behavior.
+frames and bounds.
 
 Open questions 2 and 3 must account for complete authored xform stacks, including
 multiple translations, rotations, scales and pivots, rather than relying on an
@@ -1115,7 +1137,9 @@ an authoring helper that inserts a reset into the source are different behaviors
 Requirement 19 requires resolution to leave authored data unchanged; requirement
 25 constrains the effect of adding geospatial information on unaware consumers.
 The working-context role of ancestor CRS bindings is separate from transform
-accumulation; it does not settle how project-specific placement is carried.
+accumulation. Ordinary USD transforms carry project adjustments after CRS
+placement and resolution; question 3 concerns the coordinate context that gives
+those adjustments their meaning when the requested output CRS changes.
 
 Open question 10 covers the additional authored-text constraint in requirement
 31 and its tradeoffs: normalizing the serialized WKT string, without changing
@@ -1142,12 +1166,23 @@ declaration readable without traversal.
 A model-placement position may be expressed in a geographic CRS, including as
 samples over time. This makes explicit the geographic CRS support listed in
 the background and the latitude/longitude/height anchor illustrated on October
-2; it does not select new attributes. Angular position components are distinct
+2. Angular position components are distinct
 from the model's ordinary length-valued transforms and offsets. The placement
 encoding remains question 2, its component mapping question 6, and source-space
 interpolation follows requirement 20. Allowing a geographic source position does
 not decide whether geographic coordinates provide the scene context for resolved
 geometry, oriented frames or bounds under question 9.
+
+#### Decision on question 2: CRS placement attributes
+
+The October 2 discussion established the direction of adding CRS placement
+attributes for position, orientation and scale, distinct from ordinary USD
+transforms. Resolution uses the authored source placement and CRS to derive
+placement in the requested output CRS, including changes in local orientation
+and scale. Ordinary USD transforms are applied afterward; they are not inputs
+to the CRS position being resolved. Authored source placement remains unchanged
+under requirement 19. The attributes' precise definitions, including types and
+coordinate conventions, still need specification before implementation.
 
 #### Decision on question 5: the position and offset boundary
 
@@ -1156,10 +1191,11 @@ Its placement is expressed in that CRS; descendants inherit the coordinate
 context while using ordinary scene offsets, until another direct binding
 establishes a new anchor. An inherited CRS does not make each child translation
 a new absolute CRS position. This is the boundary already defined by the Anchor and Position
-and offset terms, binding inheritance and the complete scene example; no second
-boundary declaration is required. Choosing which properties carry the anchor's
-position, orientation and scale remains question 2. Question 3 specifies the
-separate role of project adjustments; this boundary does not settle their carrier.
+and offset terms and binding inheritance; no second
+boundary declaration is required. The precise definitions of the anchor's
+CRS position, orientation and scale attributes remain question 2. Question 3 specifies the
+coordinate context of project adjustments, which use ordinary USD transforms
+after CRS placement and resolution.
 
 #### Decision on question 11: coordinate domains and property roles
 
@@ -1174,8 +1210,11 @@ Question 11 remains for identifying the source coordinates of non-visual
 measurements with their CRS, including coordinates supplied by an external data
 asset. The proposal has not specified that association just by requiring that
 measurements, locations and times remain matched, and a binding does not make
-every vector-valued property an absolute CRS position. Requirement 30 preserves
-these associations without prescribing a storage format.
+every vector-valued property an absolute CRS position. Requirement 30 establishes
+the functional intent of preserving measurement values and their position/time
+associations; question 11 concerns their authored representation, without
+prescribing a measurement storage format. Project-adjusted imagery is already
+covered by requirement 8; the adjustment's coordinate context is question 3.
 
 #### Decision on question 14: explicit export
 
@@ -1209,14 +1248,15 @@ State Plane + NAVD88 coordinates. With an unchanged supported output CRS and no
 separate project adjustment of the control, correcting site calibration changes
 the design's resolved placement, not the control's.
 
-CRS-aware placement includes position, orientation and scale. Resolving that
+CRS placement attributes record position, orientation and scale. Resolving that
 placement accounts for the change in local axes and scale between source and
-output CRSs; moving the origin alone is insufficient. An intentional project
-adjustment acts on the CRS-correct placement, and is distinct from both this
-conversion and source unit/up-axis conformance. This is the semantic order
-confirmed on October 2, not a selected property layout or matrix multiplication
-order. The context in which an adjustment is authored, its USD carrier and its
-composition with ordinary xformOps still need specification. In particular,
+output CRSs; moving the origin alone is insufficient. Ordinary USD transforms,
+including intentional project adjustments, apply after CRS placement and
+resolution. Their order relative to CRS computation is the October 2 decision,
+not an open choice. CRS conversion and corrections to source unit/up-axis
+conventions remain distinct. The coordinate context in which a project
+adjustment is authored and preserved when the output CRS changes still needs
+specification. In particular,
 "after CRS conversion" does not mean reusing the same numeric adjustment in every
 requested output CRS; requirement 8 preserves the adjusted placement itself.
 
@@ -1238,7 +1278,7 @@ The consumer's requested CRS is the resolved output context; an
 enclosing project binding does not require first producing a result in its CRS.
 This defines the output's meaning, not an engine's internal computational path.
 Authored project-specific placement must still be preserved under requirement 8;
-its carrier and composed ordering remain question 3. The October 2 discussion
+its adjustment coordinate context remains question 3. The October 2 discussion
 confirmed this as the intended behavior rather than a new output mode to design.
 Whether the scene's output CRS may itself be geographic remains question 9.
 
@@ -1293,7 +1333,7 @@ Two new schemas are introduced:
 | Schema | Type | Purpose |
 |--------|------|---------|
 | `GeospatialCRS` | Typed (IsA) | Defines a CRS as a first-class USD prim |
-| `GeospatialCRSBindingAPI` | Applied (HasA) | Binds a CRS prim to a `UsdGeomXformable` |
+| `GeospatialCRSBindingAPI` | Applied (HasA) | Binds a CRS definition to a `UsdGeomXformable` prim |
 
 This two-schema approach separates the CRS *definition*
 from the CRS *usage*,
@@ -1319,8 +1359,11 @@ and users can create custom ones for local/site-specific CRS definitions.
 
 ### CRS binding and inheritance
 
-The `GeospatialCRSBindingAPI` is applied to a `UsdGeomXformable` prim
-and references a `GeospatialCRS` prim (from the same stage or an external layer).
+The `GeospatialCRSBindingAPI` is applied to a `UsdGeomXformable` prim and
+associates it with a CRS definition through a USD reference to a `GeospatialCRS`
+prim, either in the same stage or in an external library layer. This is the
+reference-based binding data representation described by this proposal;
+it does not prescribe a callable binding interface or transform-stack edits.
 
 CRS bindings inherit down the prim hierarchy.
 A prim without a direct CRS binding
@@ -1335,9 +1378,12 @@ This is how multi-CRS scenes are composed
 For model placement, a direct binding establishes an anchor, and an inherited
 binding supplies coordinate context for ordinary offsets below it until the
 next direct binding, as recorded in the decision on question 5. The position,
-orientation and scale encoding at that anchor remains question 2. The following
-translate-based examples illustrate the boundary; they do not settle that
-encoding for arbitrary xform stacks or geographic positions.
+orientation and scale encoding at that anchor remains question 2. These are
+separate CRS placement attributes, not ordinary translate xformOps. A binding
+does not prescribe an authoring helper that rewrites the ordinary transform stack.
+
+The coordinate-property association for non-visual datasets remains question 11;
+this model-binding description does not identify their source coordinate properties.
 
 ### Precision handling
 
@@ -1350,13 +1396,13 @@ The solution is a two-tier approach:
 
 | Tier | Data | Type | Precision |
 |------|------|------|-----------|
-| **Anchor** | Geospatial position | `double3 xformOp:translate` | float64 (~15 digits) |
+| **CRS placement** | Geospatial position | Separate high-precision placement attribute; exact type remains question 2 | Precision sufficient for the stated extent and tolerance |
 | **Detail** | Mesh vertices | `point3f[] points` | float32 (~7 digits) |
 
-The large CRS coordinates are carried in the double-precision
-`xformOp:translate` on the CRS-bound `Xform` prim.
-Mesh vertex positions are small offsets (typically < 1 km)
-relative to that anchor, staying well within float32 range.
+Large CRS coordinates are separated from ordinary local geometry and its
+transform stack. The permitted local extent follows the required precision
+and approximation contract in question 13; this does not impose a universal
+1 km limit or change existing point storage types.
 
 ## Detailed design
 
@@ -1368,9 +1414,9 @@ A concrete typed schema that defines a CRS as a first-class USD prim.
 
 **Attributes:**
 
-| Attribute | API Name | Type | Variability | Description |
-|-----------|----------|------|-------------|-------------|
-| `crs:wkt` | `wellKnownText` | `uniform token` | Uniform | OGC WKT 2 string (ISO 19162:2019) defining the CRS |
+| Attribute | Type | Variability | Description |
+|-----------|------|-------------|-------------|
+| `crs:wkt` | `token` | Uniform | OGC WKT 2 string (ISO 19162:2019) defining the CRS |
 
 The `crs:wkt` attribute is `uniform` because a CRS definition
 does not vary over time or across a mesh.
@@ -1418,300 +1464,61 @@ def CoordinateReferenceSystem "WGS84_UTM11N" (
 }
 ```
 
-**C++ API:**
+### CRS association and model placement
 
-```cpp
-class UsdGeospatialCoordinateReferenceSystem : public UsdTyped {
-public:
-    static UsdGeospatialCoordinateReferenceSystem
-    Define(const UsdStagePtr &stage, const SdfPath &path);
+The recorded decisions establish distinct CRS position, orientation and scale
+attributes for model placement. Ordinary USD transforms apply after CRS
+placement and resolution. A direct model binding establishes an independent
+absolute placement boundary; resolving that boundary excludes ancestor ordinary
+transforms without modifying authored xformOps or authoring resetXformStack.
 
-    static UsdGeospatialCoordinateReferenceSystem
-    Get(const UsdStagePtr &stage, const SdfPath &path);
-
-    UsdAttribute GetWellKnownTextAttr() const;
-    UsdAttribute CreateWellKnownTextAttr(
-        VtValue const &defaultValue = VtValue(),
-        bool writeSparsely = false) const;
-
-    /// Walk up the prim hierarchy from `prim` and return the WKT token
-    /// of the first ancestor (or self) with a valid crs:wkt attribute.
-    static TfToken ComputeCoordinateReferenceSystem(UsdPrim const &prim);
-};
-```
-
-### GeospatialCRSBindingAPI applied schema
-
-A single-apply API schema that binds a CRS to a `UsdGeomXformable` prim.
-
-**Schema type name:** `BindingAPI`
-**Can only apply to:** `Xformable`
-
-**Behavior:**
-
-When `Bind()` is called, the schema:
-1. Adds a USD **reference** to the specified `GeospatialCRS` prim
-   (internal or external).
-2. Calls `SetResetXformStack()` on the prim,
-   ensuring `!resetXformStack!` appears in the `xformOpOrder`,
-   so the prim's `xformOp:translate` is interpreted
-   as an absolute position in the bound CRS.
-
-**C++ API:**
-
-```cpp
-class UsdGeospatialBindingAPI : public UsdAPISchemaBase {
-public:
-    static UsdGeospatialBindingAPI Apply(const UsdPrim &prim);
-    static bool CanApply(const UsdPrim &prim,
-                         std::string *whyNot = nullptr);
-
-    /// Bind via internal reference to a CRS prim on the same stage.
-    bool Bind(UsdGeospatialCoordinateReferenceSystem const &crs) const;
-
-    /// Bind via external reference to a CRS prim in another layer.
-    bool Bind(std::string const &layerPath,
-              SdfPath const &crsPrimPath) const;
-};
-```
-
-### Complete scene example
-
-The following example places a simplified building
-at the Esri headquarters in Redlands, California (34.0561°N, 117.1956°W),
-using WGS 84 / UTM zone 11N (EPSG:32611).
-
-```usda
-#usda 1.0
-(
-    defaultPrim = "World"
-    metersPerUnit = 1
-    upAxis = "Z"
-)
-
-# ── Stage root: CRS-bound to UTM 11N ────────────────────────────────
-def Xform "World" (
-    apiSchemas = ["GeospatialCRSBindingAPI"]
-    references = [@./crs_library.usda@</CRS/WGS84_UTM11N>]
-)
-{
-    uniform token[] xformOpOrder = ["!resetXformStack!", "xformOp:translate"]
-
-    # Esri HQ — UTM 11N coordinates (metres)
-    double3 xformOp:translate = (481948.63, 3768393.52, 400)
-
-    # ── Building inherits CRS from /World ────────────────────────────
-    def Xform "EsriCampus" (
-        references = [@./esri_hq_building.usda@</EsriHQ>]
-    )
-    {
-        # Local offset (metres) — stays within float32 range
-        double3 xformOp:translate = (0, 0, 0)
-        uniform token[] xformOpOrder = ["xformOp:translate"]
-    }
-
-    # ── Different CRS zone in the same scene ─────────────────────────
-    def Xform "NewYorkCity" (
-        apiSchemas = ["GeospatialCRSBindingAPI"]
-        references = [@./crs_library.usda@</CRS/WGS84_UTM18N>]
-    )
-    {
-        uniform token[] xformOpOrder = ["!resetXformStack!", "xformOp:translate"]
-        # Times Square — UTM 18N coordinates (metres)
-        double3 xformOp:translate = (583960, 4507523, 10)
-
-        def Xform "TimesSquareBuilding"
-        {
-            double3 xformOp:translate = (0, 0, 0)
-            uniform token[] xformOpOrder = ["xformOp:translate"]
-
-            def Mesh "Walls"
-            {
-                int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
-                int[] faceVertexIndices = [
-                    0,1,2,3, 4,7,6,5, 0,4,5,1,
-                    1,5,6,2, 2,6,7,3, 4,0,3,7
-                ]
-                point3f[] points = [
-                    (-25,-15,0),(25,-15,0),(25,15,0),(-25,15,0),
-                    (-25,-15,60),(25,-15,60),(25,15,60),(-25,15,60)
-                ]
-            }
-        }
-    }
-}
-```
-
-Key observations:
-- `/World` is bound to UTM 11N (EPSG:32611) — the scene's default **Target CRS**
-  when the consumer does not select another output context.
-- `/World/EsriCampus` has no CRS binding — it **inherits** UTM 11N from `/World`.
-- `/World/NewYorkCity` overrides with UTM 18N (EPSG:32618).
-  With that default output, its geometry would be **reprojected** to UTM 11N.
-- Mesh vertices (`point3f[]`) are small local offsets.
-  Large geospatial positions are in `double3 xformOp:translate`.
-
-### CRS library example
-
-```usda
-#usda 1.0
-
-def "CRS" {
-    def CoordinateReferenceSystem "WGS84_UTM11N"
-    {
-        uniform token crs:wkt = """PROJCRS["WGS 84 / UTM zone 11N",
-            BASEGEOGCRS["WGS 84", ...],
-            CONVERSION["UTM zone 11N", ...],
-            ID["EPSG",32611]]"""
-    }
-
-    def CoordinateReferenceSystem "WGS84_UTM18N"
-    {
-        uniform token crs:wkt = """PROJCRS["WGS 84 / UTM zone 18N",
-            BASEGEOGCRS["WGS 84", ...],
-            CONVERSION["UTM zone 18N", ...],
-            ID["EPSG",32618]]"""
-    }
-
-    def CoordinateReferenceSystem "NAD83_CA_Zone5_ftUS"
-    {
-        uniform token crs:wkt = """PROJCRS["NAD83 / California zone 5 (ftUS)",
-            BASEGEOGCRS["NAD83", ...],
-            CONVERSION["SPCS83 California zone 5", ...],
-            ID["EPSG",2229]]"""
-    }
-}
-```
-
-### Programmatic authoring (C++)
-
-```cpp
-#include "pxr/usd/usdGeospatial/coordinateReferenceSystem.h"
-#include "pxr/usd/usdGeospatial/bindingAPI.h"
-#include "pxr/usd/usdGeom/xform.h"
-
-// Define a CRS prim
-auto crs = UsdGeospatialCoordinateReferenceSystem::Define(
-    stage, SdfPath("/CRS/WGS84_UTM11N"));
-crs.CreateWellKnownTextAttr().Set(VtValue(TfToken(wktString)));
-
-// Create a geolocated Xform
-auto xform = UsdGeomXform::Define(stage, SdfPath("/World"));
-auto api = UsdGeospatialBindingAPI::Apply(xform.GetPrim());
-api.Bind(crs);
-
-// Set geospatial coordinates (UTM 11N, metres)
-UsdGeomXformOp translateOp = xform.AddTranslateOp(
-    UsdGeomXformOp::PrecisionDouble);
-translateOp.Set(GfVec3d(481948.63, 3768393.52, 400.0));
-
-// Resolve CRS for any prim (walks up hierarchy)
-TfToken wkt = UsdGeospatialCoordinateReferenceSystem
-    ::ComputeCoordinateReferenceSystem(somePrim);
-```
-
-### Programmatic authoring (Python)
-
-```python
-from pxr import Usd, UsdGeom, UsdGeospatial, Gf
-
-stage = Usd.Stage.CreateNew("scene.usda")
-stage.SetMetadata("metersPerUnit", 1.0)
-UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.z)
-
-# Define CRS
-crs = UsdGeospatial.CoordinateReferenceSystem.Define(
-    stage, "/CRS/WGS84_UTM11N")
-crs.CreateWellKnownTextAttr().Set(wkt_string)
-
-# Bind to Xform
-world = UsdGeom.Xform.Define(stage, "/World")
-stage.SetDefaultPrim(world.GetPrim())
-api = UsdGeospatial.BindingAPI.Apply(world.GetPrim())
-api.Bind(crs)
-
-# Set geospatial position
-world.AddTranslateOp(UsdGeomXformOp.PrecisionDouble).Set(
-    Gf.Vec3d(481948.63, 3768393.52, 400.0))
-```
+The reference-based binding above supplies the model's source CRS. The placement
+attribute definitions, including types, defaults, component conventions and the
+bases and mutual order of orientation and scale, remain question 2 and question
+6. Source-position interpolation already follows requirement 20; ordinary USD
+transforms retain their existing semantics. Question 3 concerns project-adjustment
+coordinate context, and question 11 concerns measurement-coordinate association.
+Callable programming interfaces belong to implementations. A reference
+implementation must label any experimental answers and
+cannot establish these contracts by choosing its own representation.
 
 ## Runtime coordinate transformation
 
-### When coordinates must be harmonized
+The functional requirements and recorded decisions specify observable behavior,
+including resolved coordinate queries and scene placement. They do not require
+a particular library, callable API or rendering architecture.
 
-There are several runtime situations where coordinates defined in different CRS need to be harmonized:
+A consumer-selected output CRS governs the requested result. When none is
+selected, the existing scene-default pattern uses the CRS bound to the composed
+`defaultPrim`, as described under question 8. Output selection does not replace
+source CRS facts or reinterpret ordinary project adjustment numbers in different axes.
 
-- rendering
-- stage queries (e.g. bounding boxes)
-- indirect transformation requests (e.g. upon stage flattening)
-- explicit transformation requests using the new API calls
+Rendering, bounds, instances, physics and non-visual queries use the same
+resolution under requirement 17. Coordinate and relative-placement queries
+follow requirement 18. Geographic coordinate queries are already supported;
+geographic scene geometry, frames and bounds remain question 9.
 
-Requirements 17 and 18 already require rendering and non-visual queries to use
-the same resolution and permit coordinate results in a named geographic CRS.
-That query support does not define geographic scene frames or bounds (question
-9). Resolution itself writes nothing into the scene. An explicit resolved export
-instead authors output-CRS data and records its sampling and measurement/time
-associations under requirements 19 and 30; ordinary composition flattening is
-not coordinate conversion. Question 14 concerns the sampling record, not whether
-these context and preservation obligations apply.
+A model's separate CRS position, orientation and scale establish its full
+placement. Ordinary USD transforms apply after that placement and resolution.
+The enclosing project's working context is retained under the decision on
+question 3. Exact bases and the context's derivation must still be specified;
+a geographic coordinate query does not make angular values ordinary USD lengths.
 
-### The transformation abstraction
+Resolution reads composed scene values, interpolates source positions before
+conversion and leaves source layers unchanged. Unsupported requests, broken
+bindings and failed or incomplete operations fail visibly. Operation reporting
+must identify what was computed and distinguish engine estimates from the
+placement/error guarantee required over the stated extent.
 
-We propose to introduce an internal abstraction to compute coordinate transformations from one CRS to another:
+Explicit export is a separate act: it records the output CRS and time-sampling
+meaning, preserves dataset values and associations, and can be resolved by a
+fresh consumer without applying placement twice. Question 14 concerns the
+sampling-record representation; measurement-coordinate association remains
+question 11.
 
-```text
-transform(inout ArrayVector3d coordinates, in WKT crsIn, in WKT crsOut)
-```
-
-The OpenUSD plugin system is employed to register implementations.
-
-### Target CRS and runtime reprojection
-
-The **Target CRS** is the consumer-selected resolved output context under
-requirement 16 and the decision on question 8. The existing scene sketch uses
-the CRS bound to the composed `defaultPrim` as the default when a consumer
-makes no selection; it does not override a consumer's choice or require an
-intermediate project-CRS result.
-
-Resolution derives coordinates and model placement in that output CRS,
-accounting for local orientation and scale as well as position under
-requirements 9 and 10. The source CRS bindings and authored placement remain
-unchanged under requirement 19. Intentional project adjustments retain their
-meaning under requirement 8; their carrier and composed ordering remain
-question 3. Model position/orientation/scale property roles remain question 2;
-source measurement-coordinate association remains question 11. A directly bound
-model prim establishes the anchor under question 5's decision; inherited model
-transforms remain ordinary offsets rather than new absolute CRS positions.
-
-This reprojection is implemented as a
-**Hydra 2.0 Scene Index Filter** (for rendering)
-and as API methods (for computation),
-using an abstracted interface to third-party CRS libraries
-(PROJ, GDAL, Esri projection engine, etc.).
-
-### Default Implementation using the "PROJ" library
-
-The OpenSource [PROJ](https://proj.org/) library can be used to create a bidirectional "transformer" object by parsing the USD WKT2 string and defining the target Coordinate Reference System (CRS) by its EPSG code.
-
-The following sample code, using the `pyproj` library (a common Python binding for PROJ), demonstrates how to create a transformer between the Derived CRS with Affine Site Calibration WKT string provided in the document and the target EPSG:10499.
-
-```python
-import pyproj
-
-# 1. Define the Coordinate Reference Systems (CRS)
-
-# 1a. Create a CRS object from the USD WKT string.
-crs_from = pyproj.CRS.from_wkt(USD_WKT_STRING)
-
-# 1b. Create a CRS object from the target EPSG code.
-crs_to = pyproj.CRS.from_string("EPSG:10499")
-
-# 2. Create the Transformer
-transformer = pyproj.Transformer.from_crs(crs_from, crs_to)
-
-# Example usage
-target_x, target_y, target_z = transformer.transform(usd_x, usd_z, usd_y)
-```
+These obligations need a complete data model and normative runtime specification
+before independent implementation can claim proposal conformance. A prototype's
+choice of a projection engine or affine approximation does not fill that gap.
 
 ## Interaction with existing USD features
 
@@ -1729,15 +1536,13 @@ mappings for other CRS component sets.
 
 ### Transform stack and resetXformStack
 
-The `GeospatialCRSBindingAPI` emits `!resetXformStack!`
-at the beginning of the `xformOpOrder` for CRS-bound prims.
-This ensures that the `xformOp:translate` value
-is interpreted as an **absolute position** in the bound CRS,
-not as a relative offset from a parent transform.
-
-Without this reset, USD's standard transform concatenation
-would add the geospatial coordinates of parent and child,
-producing nonsensical world-space positions.
+A direct model binding establishes the resolution boundary in the decision on
+question 5. Geospatial resolution excludes ancestor ordinary transforms at that
+boundary without writing resetXformStack or changing any source xformOp. The
+model's own ordinary transforms apply after CRS placement and resolution;
+descendant transforms retain their ordinary USD semantics. Authored reset
+markers remain ordinary USD data, and consumers that ignore geospatial fields
+retain the ordinary interpretation required by requirement 25.
 
 ### Composition arcs
 
@@ -1754,11 +1559,12 @@ a stronger arc can override a weaker arc's CRS binding.
 
 ### Relationship to UsdGeom
 
-The `GeospatialCRSBindingAPI` is restricted to `UsdGeomXformable` prims.
-It does not modify `UsdGeomMesh`, `UsdGeomPoints`, or other geometry schemas.
-Geometry prims remain unchanged —
-their vertex positions are always local offsets
-relative to the nearest ancestor `Xform`.
+Existing geometry schemas and ordinary local transform semantics remain
+unchanged. Separately authored CRS placement describes a model's geospatial
+meaning. Coordinate datasets can have CRS meaning without being rendered
+geometry. The model-binding design retains its `UsdGeomXformable` applicability;
+question 11 concerns identifying measurement-coordinate properties with their
+CRS, without changing the ordinary interpretation of geometry vertices.
 
 ## Industry use cases
 
@@ -1806,6 +1612,8 @@ in CRS tied to national geodetic reference frames.
 Dynamic datums and coordinate epochs
 (supported via WKT 2's `COORDINATEMETADATA`)
 are essential for high-precision positioning.
+Coordinate-epoch support for these workflows is roadmap question 15;
+CRS frame reference epochs remain in the initial scope.
 
 ## Interoperability
 
@@ -1855,9 +1663,9 @@ rather than simple EPSG integer codes for several reasons:
    so nothing is lost.
 
 4. **Dynamic datums.**
-   WKT 2 supports `DYNAMIC[FRAMEEPOCH[...]]` and `EPOCH[...]`
-   for time-dependent reference frames — critical for
-   high-precision surveying and tectonic-plate-aware applications.
+   WKT 2 carries frame reference epochs in `DYNAMIC[FRAMEEPOCH[...]]`.
+   Coordinate epochs use the separate `COORDINATEMETADATA` wrapper with
+   `EPOCH[...]` and remain roadmap question 15, outside the initial scope.
 
 5. **ISO standard.**
    OGC WKT 2 is formally standardized as ISO 19162:2019,
@@ -1889,7 +1697,7 @@ This was rejected because:
 | **A: Primvar** | `asset primvars:geolocation:crs` | Auto-inheritance via primvar system | Requires custom asset-path resolution; non-standard prim types |
 | **B: String primvar + inherits** | `string primvars:geolocation:crs:wkt` + `inherits` | Simplest implementation; leverages both inherits and primvar inheritance | WKT duplicated on every inheriting prim in flattened stage |
 | **C: Abstract class + plain attribute** | `class` prims with `crs:wkt` attribute | Idiomatic USD class usage | No automatic inheritance for plain attributes; requires manual parent-walking |
-| **D: Typed prim + applied API (this proposal)** | `GeospatialCRS` prim + `GeospatialCRSBindingAPI` | Clean separation of definition and usage; reference-based binding; API-driven inheritance | Requires new schema registration |
+| **D: Typed prim + applied API (this proposal)** | `GeospatialCRS` prim + `GeospatialCRSBindingAPI` | Clean separation of definition and usage; reference-based binding and subtree CRS scope | Requires new schema registration |
 
 Approach D was selected because it provides the cleanest separation
 of concerns, composes naturally through USD references,
@@ -2018,8 +1826,9 @@ Working prototype implementations exist:
    and register the `usdGeospatial` library
    in the OpenUSD build system.
 
-3. **Settle what the transformation abstraction must carry**
-   beyond coordinates — epoch, orientation, and failure reporting.
+3. **Complete the shared data model and normative runtime behavior**
+   for initial-scope placement, dataset association and observable failures.
+   Coordinate epochs remain a separate roadmap capability.
 
 4. **Collaborate with the Geometry Working Group**
    on double-precision geometry support.
@@ -2038,8 +1847,7 @@ Working prototype implementations exist:
    so the same CRS is described the same way throughout.
 
 9. **Demonstrate the accuracy claim**
-   by extending the PROJ sample above
-   into a worked conversion from USD coordinates
+   with a worked conversion from USD coordinates
    to a national CRS, with the expected accuracy stated
    and checked.
 
