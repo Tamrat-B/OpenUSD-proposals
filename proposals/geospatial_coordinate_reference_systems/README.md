@@ -1778,6 +1778,44 @@ an undocumented second convention. This does not relabel ordinary scene axes.
 
 ### Source placement evaluation and transform order
 
+#### Placement-order illustration
+
+![Six fixed-camera Eiffel Tower snapshots: local geometry, authored attitude, CRS-resolved placement, then ordinary USD scale, rotation and translation; previous-state outlines, height guides and plan-view arrows expose each change](figures/math-order/crs-usd-math-order.png)
+
+The source geospatial data model records authoritative inputs. Resolving those
+inputs into a requested coordinate context produces placement and coordinate-query
+results; those computed outputs do not become additional authored properties of
+the source geospatial schema. An explicit resolved export is a separate authoring
+operation, with its own representation and the existing obligation to represent
+each placement effect once.
+
+The illustration separates CRS placement and resolution from the ordinary USD
+adjustment that follows. The latter can change the model's final scene position,
+orientation and size without modifying its authored CRS position, model attitude
+or CRS definition. Scene consumers and coordinate queries include the same final
+adjustment. A change of coordinate representation alone does not move the model
+physically.
+
+In this geographic-source example, **geospatial model attitude** describes
+authored orientation relative to local east/north/up at the placement position.
+The later **USD rotation adjustment** is evaluated in the working Cartesian
+frame as part of the ordinary post-placement transform stack. Their reference
+frames and evaluation roles give them distinct meanings.
+
+This example uses the same Cartesian working and output context, Lambert-93 in
+metres with ellipsoidal height, and an explicitly authored ordinary USD pivot at
+the shown placement. It does not choose an implicit pivot, demonstrate transport
+of an adjustment between different working/output CRSs, or certify a finite-extent
+affine approximation. The figures start with already-conformed local geometry;
+the writer's asset-unit and up-axis conformance obligations remain unchanged.
+Attitude, height and adjustments are illustrative, and the attitude input encoding
+remains under review. The panels explain contributions to one resolved result,
+not required intermediate authoring or a particular evaluator architecture.
+The [expanded six-image sequence](figures/math-order/README.md) identifies the
+individual driving fields and gives the example's ordinary transform stack.
+
+#### Evaluation
+
 Read the three placement fields from composed values. For sampled fields, use
 Core value resolution in the source representation: `double3` interpolation for
 position/scale and quaternion slerp for orientation when linear interpolation is
