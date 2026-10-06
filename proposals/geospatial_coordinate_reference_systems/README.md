@@ -1,11 +1,12 @@
 # Geospatial Coordinate Reference Systems for OpenUSD
 
-**Local review candidate.** This draft retains the published October 2 decisions
-on reference-based CRS binding and resolution boundaries. It integrates proposed
-placement-field definitions and a WKT string normalization profile for review;
-their detailed choices are not recorded group agreement. The open-question
-table distinguishes decided direction from proposed definitions and remaining
-contracts. This draft is not yet declared agent-ready for the full initial scope.
+**Local review candidate.** This revision proposes a complete initial-scope
+contract for author review. It retains the October 2 scope and reference-based
+binding decisions, and separates authored geospatial inputs from computed
+results. The field, working-frame, measurement, Profiles and result conventions
+below are proposed definitions, not a record that the group adopted them.
+Implementations are checked against this exact candidate; successful execution
+does not establish either group agreement or complete implementation coverage.
 
 ## Contributors
 
@@ -20,7 +21,7 @@ contracts. This draft is not yet declared agent-ready for the full initial scope
 
 This proposal introduces first-class support for
 **Geospatial Coordinate Reference Systems (CRS)** in OpenUSD.
-It defines two new schemas that allow USD scenes to declare
+It defines CRS definition, binding and external-association schemas that allow USD scenes to declare
 *where on a celestial body* their 3D content is located,
 enabling interoperability with GIS, AECO, digital twin,
 and simulation workflows that require real-world positioning.
@@ -28,9 +29,11 @@ and simulation workflows that require real-world positioning.
 The core idea is simple:
 a CRS definition is stored as an OGC WKT string on a typed prim,
 and an applied schema associates that CRS with content in the composed scene.
-For model placement, distinct CRS position, orientation and scale attributes
-precede ordinary USD transforms. Non-visual coordinate datasets use the same
-CRS definitions; their property association remains to be specified.
+For model placement, authored position and geospatial model attitude supply
+the inputs to CRS resolution. Convergence, distance scale and distortion are
+computed results. Ordinary USD transforms adjust the resolved placement.
+Non-visual datasets associate native coordinate domains with the same CRS
+definitions, independently of optional visualization.
 Child prims inherit their parent's CRS binding,
 and a runtime reprojection pipeline transforms geometry
 between different CRS zones within a single composed stage.
@@ -579,9 +582,9 @@ authority. Initial model choices must preserve a path to these controls and to
 coordinate epochs. Retained epoch sketches describe roadmap candidates, not
 initial conformance obligations. The placement fields and WKT string
 normalization profile below are concrete proposals under review, rather than
-missing definitions. The remaining frame, coordinate-role and declaration
-contracts are identified in the question table; proposing a definition and
-agreeing to it are distinct steps.
+missing definitions. The complete proposed frame, coordinate-role and declaration contracts are
+identified in the question table; proposing a definition and agreeing to it
+are distinct steps.
 
 **The CRS itself**
 
@@ -781,8 +784,8 @@ agreeing to it are distinct steps.
     and it is only detectable if the scene distinguishes the two.
     Excluding ancestor xformOps does not discard enclosing CRS context or
     prohibit intentional project placement under requirement 8; the
-    coordinate context of that placement remains question 3; its ordinary USD
-    transforms apply after CRS placement and resolution.*
+    coordinate context of the anchor's project adjustment is defined under
+    question 3; its ordinary stack applies after CRS placement and resolution.*
 
 12. **No angle read as a length.**
     Every coordinate's unit, and the surface its height is measured from,
@@ -858,7 +861,7 @@ agreeing to it are distinct steps.
     8; it is not a conversion of a mandatory project-CRS result.
     This does not prescribe the engine's internal computational path.
     Authored project-specific placement must still be preserved under
-    requirement 8; the adjustment's coordinate context remains question 3.*
+    requirement 8; the adjustment's coordinate context is proposed under question 3.*
 
 17. **The same answer for every consumer.**
     A world position, a bound, an instance, a physics body and a rendered
@@ -1135,66 +1138,26 @@ The proposal remains subject to author review.
 | # | Question | Requirements and status |
 |--:|---|---|
 | 1 | May a model-placement position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 17, 18, 19, 20, 22, 30; Decided: [geographic source positions](#decision-on-question-1-geographic-source-positions); encoding remains question 2 |
-| 2 | What field definitions and coordinate conventions specify the CRS placement attributes for position, orientation and scale? | 9, 10, 11, 12, 20; Decided: [distinct CRS placement attributes](#decision-on-question-2-crs-placement-attributes); [proposed field definitions](#crs-association-and-model-placement) are under review |
-| 3 | What coordinate context applies to project adjustments expressed as ordinary USD transforms when the consumer changes the requested output CRS? | 5, 6, 8, 9, 11, 15, 16, 19; Decided: [working context and placement order](#decision-on-question-3-working-context-and-placement-order); adjustment context remains open |
+| 2 | What field definitions and coordinate conventions specify the CRS placement attributes for position, orientation and scale? | 9, 10, 11, 12, 20; Recorded direction: separate placement; proposed [input-only position and attitude](#crs-association-and-model-placement) revise the earlier field candidate |
+| 3 | What coordinate context applies to project adjustments expressed as ordinary USD transforms when the consumer changes the requested output CRS? | 5, 6, 8, 9, 11, 15, 16, 19; Proposed [fixed working chart and full post-placement stack](#evaluation), including output changes, resets and instances |
 | 4 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15; Decided: [writer or assembler](#decision-on-question-4-authored-unit-and-up-axis-conformance) |
 | 5 | Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27; Decided: [direct binding establishes the anchor](#decision-on-question-5-the-position-and-offset-boundary) |
-| 6 | What component order and scene-frame representation apply to the supported CRS coordinate systems? | 12, 13, 14; [Proposed position mappings and bases](#position-components) cover geographic and geocentric coordinates; stage-frame conversion and unsupported component sets remain explicit limits |
+| 6 | What component order and scene-frame representation apply to the supported CRS coordinate systems? | 12, 13, 14; Proposed [component profile and right-handed stage mapping](#position-components); model attitude is geodetic ENU, distinct from projected grid axes |
 | 7 | Does site calibration (localization) need a construct of its own? | 2, 4; Decided: [CRS definition and binding](#decision-on-question-7-site-calibration) |
 | 8 | Is the consumer's chosen CRS the one the scene resolves into, or a conversion of a result resolved into the CRS the scene names? | 16, 17, 21, 23; Decided: [consumer-selected output context](#decision-on-question-8-consumer-selected-output-context) |
-| 9 | May a geographic CRS be the resolved scene context for geometry, frames and bounds? | 16, 18, 22; Geographic coordinate queries are already covered by requirement 18; geographic scene context remains open |
+| 9 | May a geographic CRS be the resolved scene context for geometry, frames and bounds? | 12, 16, 17, 18, 22; Proposed [geographic tuples with associated geocentric scene chart](#queries-scene-charts-and-instances); angular Euclidean scene frames are unsupported |
 | 10 | What WKT string normalization profile preserves the represented information, and what comparisons can its normal form establish? | 1, 2, 3, 21, 27, 28, 29, 31; [Proposed lexical profile and comparison contract](#wkt-string-normalization) are under review |
-| 11 | How are a measurement dataset's source coordinate properties associated with its CRS, separately from model-placement properties and ordinary geometry offsets? | 2, 5, 6, 7, 12, 18, 19, 21, 27, 30; Decided: [composed subtree scope](#decision-on-question-11-coordinate-domains-and-property-roles); measurement-coordinate association remains open, model-placement encoding is question 2; coordinate epochs are roadmap question 15 |
-| 12 | What authored declaration exposes the composed scene's CRS dependency without traversal, including referenced or unloaded content and explicit export? | 7, 19, 25, 26, 27; Coverage is already all placed content under requirement 26; carrier and composition remain open |
-| 13 | How is placement-approximation error established for resolved frames, geometry and bounds, and how is cross-engine agreement measured for comparable operations? | 17, 18, 21, 22, 23, 24, 28, 29; Decided: [engine responsibility and required result behavior](#decision-on-question-13-operation-and-resource-responsibility); [proposed result and comparison rules](#extent-and-result-comparison) specify obligations; the geographic distance measure is a proposed choice |
-| 14 | How does a time-sampled export record its sampling so a reader can distinguish it from resolution of the original authored samples? | 18, 19, 20, 27, 30; Decided: [export context and preservation](#decision-on-question-14-explicit-export); [proposed use of existing USD sampling fields](#explicit-export-and-sampling) defines the sampling record without a new geospatial attribute |
+| 11 | How are a measurement dataset's source coordinate properties associated with its CRS, separately from model-placement properties and ordinary geometry offsets? | 2, 5, 6, 7, 8, 12, 18, 19, 21, 27, 30; Proposed [external association and adjustment](#external-measurement-association), retaining native values; epochs remain question 15 |
+| 12 | What authored declaration exposes the composed scene's CRS dependency without traversal, including referenced or unloaded content and explicit export? | 7, 19, 25, 26, 27; Proposed [Profiles carrier and conservative maintenance](#dependency-declaration-with-profiles), including unloaded content and export |
+| 13 | How is placement-approximation error established for resolved frames, geometry and bounds, and how is cross-engine agreement measured for comparable operations? | 17, 18, 21, 22, 23, 24, 28, 29; Engine responsibility decided; proposed [extent and comparison rules](#extent-and-result-comparison) distinguish pointwise, polygonal and continuous guarantees |
+| 14 | How does a time-sampled export record its sampling so a reader can distinguish it from resolution of the original authored samples? | 18, 19, 20, 27, 30; Export preservation decided; proposed [Cartesian representation and existing sampling fields](#explicit-export-and-sampling) |
 | 15 | How should a future extension represent and associate coordinate epochs, and what must it specify for epoch-dependent resolution? | 2, 3, 5, 7, 19, 21, 27, 28, 30; Roadmap: [coordinate epochs](#roadmap-question-15-coordinate-epochs), outside the initial scope |
 
-Requirement 18 already permits geographic output coordinates. Question 9 concerns
-the distinct use of a geographic CRS as the resolved scene context for geometry,
-frames and bounds.
-
-Open questions 2 and 3 must account for complete authored xform stacks, including
-multiple translations, rotations, scales and pivots, rather than relying on an
-unidentified translate. A runtime boundary that excludes ancestor xformOps and
-an authoring helper that inserts a reset into the source are different behaviors.
-Requirement 19 requires resolution to leave authored data unchanged; requirement
-25 constrains the effect of adding geospatial information on unaware consumers.
-The working-context role of ancestor CRS bindings is separate from transform
-accumulation. Ordinary USD transforms carry project adjustments after CRS
-placement and resolution; question 3 concerns the coordinate context that gives
-those adjustments their meaning when the requested output CRS changes.
-
-Open question 10 covers the additional authored-text constraint in requirement
-31 and its tradeoffs: normalizing the serialized WKT string, without changing
-the represented CRS definition. OGC's permitted syntax does not itself prescribe a unique
-serialization. Complete-WKT identity, equivalence of an embedded CRS and the
-identity of a requested coordinate operation are distinct comparisons.
-
-For question 6, requirement 13 fixes easting/northing/up component order;
-northing-first WKT storage does not change it. The proposed placement table
-adds longitude/latitude/height and geocentric X/Y/Z order for review. A resolved
-frame's representation in stage axes and length units must also be explicit
-under requirement 14. Neither relabeling a Y-up stage as Z-up nor silently
-repairing an imported asset is an answer. Other component sets need explicit
-conventions before support can be claimed. None of these source mappings
-decides question 9's geographic scene output.
-
-Open question 12 concerns the authored carrier and coverage required by
-requirement 26, which already requires coverage of every piece of placed content.
-Discovering bindings by traversing the scene is not the promised declaration,
-and unloaded content is not evidence of no dependency. The authored declaration
-and its composition remain unspecified; the CRS binding schema is not itself a
-declaration readable without traversal.
-
-The remaining answer must name the authored carrier and the writer's rule for
-maintaining a conservative assembly summary. Core's `customLayerData` is an
-existing possible carrier, but merely naming it does not define a geospatial
-key or make dependency information aggregate through references, variants or
-payloads. The rule must account for unloaded content and recompute the summary
-for an explicit export. A missing summary or an unloaded payload cannot be
-treated as evidence that resolution is unnecessary. Selecting a carrier is
-a model decision, not permission to promote a prototype's layer flag.
+The table separates recorded direction from complete proposed definitions.
+Runtime rules have one authoritative location in the detailed design and
+[evaluation](#evaluation). Dataset descriptions and distinguishing counterexamples
+are informative in [Appendix C](#appendix-c-distinguishing-examples). Pending
+review is not missing behavior, and implementation coverage is not group adoption.
 
 #### Decision on question 1: geographic source positions
 
@@ -1210,16 +1173,16 @@ geometry, oriented frames or bounds under question 9.
 
 #### Decision on question 2: CRS placement attributes
 
-The October 2 discussion established the direction of adding CRS placement
-attributes for position, orientation and scale, distinct from ordinary USD
-transforms. Resolution uses the authored source placement and CRS to derive
-placement in the requested output CRS, including changes in local orientation
-and scale. Ordinary USD transforms are applied afterward; they are not inputs
-to the CRS position being resolved. Authored source placement remains unchanged
-under requirement 19. The attributes' precise definitions, including types and
-coordinate conventions, are proposed in
-[CRS association and model placement](#crs-association-and-model-placement).
-Those detailed choices remain under review; the agreed direction is not reopened.
+The October 2 discussion distinguished CRS placement from ordinary USD
+adjustments and required resolution to account for orientation and scale,
+not just the origin. Sébastien's October 6 clarification distinguishes model
+attitude from geodetic convergence and scale. The proposed input model below
+therefore retains authored position and a geodetic-attitude quaternion, removes
+the earlier dimensionless `crs:scale`, and computes geodetic output quantities.
+Intentional scaling uses ordinary xformOps. This revises the earlier field
+proposal; it does not assert agreement to storing computed output properties.
+See [authored placement](#crs-association-and-model-placement) and
+[evaluation](#evaluation).
 
 #### Decision on question 5: the position and offset boundary
 
@@ -1229,46 +1192,19 @@ context while using ordinary scene offsets, until another direct binding
 establishes a new anchor. An inherited CRS does not make each child translation
 a new absolute CRS position. This is the boundary already defined by the Anchor and Position
 and offset terms and binding inheritance; no second
-boundary declaration is required. The precise definitions of the anchor's
-CRS position, orientation and scale attributes remain question 2. Question 3 specifies the
+boundary declaration is required. The placement table defines authored position and attitude. Question 3 specifies the
 coordinate context of project adjustments, which use ordinary USD transforms
 after CRS placement and resolution.
 
 #### Decision on question 11: coordinate domains and property roles
 
-CRS scope follows the composed subtree and the nearest direct binding under
-requirements 6 and 7. Independently bound descendants keep their own source CRS;
-several domains in one external container can be represented by separately bound
-prims. Sharing that container does not require one CRS for all of them. Ordinary
-model vertices remain local offsets under the UsdGeom design, not separate
-absolute CRS positions merely because they lie in a bound subtree. Question 2
-identifies model-placement properties and question 5 fixes their scope boundary.
-Question 11 remains for identifying the source coordinates of non-visual
-measurements with their CRS, including coordinates supplied by an external data
-asset. The proposal has not specified that association just by requiring that
-measurements, locations and times remain matched, and a binding does not make
-every vector-valued property an absolute CRS position. Requirement 30 establishes
-the functional intent of preserving measurement values and their position/time
-associations; question 11 concerns their authored representation, without
-prescribing a measurement storage format. Project-adjusted imagery is already
-covered by requirement 8; the adjustment's coordinate context is question 3.
-
-Two authored facts remain to specify: which properties or external dataset
-coordinate domain supply absolute measurement coordinates, and how those
-coordinates are distinguished from model-relative offsets. Numeric type,
-array shape, property name and the presence of a CRS binding do not supply
-that distinction. An absolute measurement coordinate is not made relative by
-adding the model's `crs:position` again. For an external asset containing
-several domains, the association must identify the intended domain rather
-than assume that one asset path identifies one coordinate set. Existing
-format-defined position/value/time associations may be retained; this does
-not require a general measurement schema or one prim per sample. A proposed
-USD carrier, or a narrowly specified existing-format association, must be
-reviewed here before an implementation can use it as scene authority.
-If the external format also records a CRS, the association must specify whether
-that definition is checked against the composed binding or intentionally
-superseded; silently selecting whichever definition an adapter finds first
-does not establish authored authority.
+Composed subtree scope and independent source CRSs are already established by
+requirements 6 and 7. Model vertices are local offsets, not absolute coordinates.
+The proposed [external measurement association](#external-measurement-association)
+identifies a dataset, selected field and coordinate domain without introducing
+a general measurement-storage schema. Its Xformable carrier preserves native
+values and permits the project adjustments already required by requirement 8.
+The association, dimensionality and consistency rules are proposed for review.
 
 #### Decision on question 14: explicit export
 
@@ -1298,36 +1234,15 @@ the units declared by a CRS or performing a requested coordinate conversion.
 
 #### Decision on question 3: working context and placement order
 
-An enclosing project's binding supplies working context without replacing an
-independently bound dataset's authored CRS or coordinates. In the Colorado
-illustration, design uses the calibrated site grid and survey control retains
-State Plane + NAVD88 coordinates. With an unchanged supported output CRS and no
-separate project adjustment of the control, correcting site calibration changes
-the design's resolved placement, not the control's.
-
-CRS placement attributes record position, orientation and scale. Resolving that
-placement accounts for the change in local axes and scale between source and
-output CRSs; moving the origin alone is insufficient. Ordinary USD transforms,
-including intentional project adjustments, apply after CRS placement and
-resolution. Their order relative to CRS computation is the October 2 decision,
-not an open choice. CRS conversion and corrections to source unit/up-axis
-conventions remain distinct. The coordinate context in which a project
-adjustment is authored and preserved when the output CRS changes still needs
-specification. In particular,
-"after CRS conversion" does not mean reusing the same numeric adjustment in every
-requested output CRS; requirement 8 preserves the adjusted placement itself.
-
-The remaining choice must identify the adjustment's axes, units and pivot, and
-which composed binding supplies that frame. For example, after a model's CRS
-orientation turns it 90 degrees relative to a site's grid, an ordinary X
-translation could be interpreted along the model's oriented X axis or along
-the site's grid-easting axis. Those produce different locations even before
-the output CRS changes. The agreed post-CRS order alone does not choose between
-them. The definition must also explain how the same authored adjustment retains
-its physical meaning in another output CRS, and how the full xform stack,
-including descendant transforms and reset markers, supplies it. No runtime may
-choose a convenient frame, apply a raw translate as a length without its scale
-context, or discard the adjustment when producing a coordinate query.
+An independently bound dataset retains its source CRS and coordinates. The
+nearest strictly enclosing direct binding supplies the fixed adjustment CRS;
+the source CRS is the fallback. Sébastien's October 6 reply supports this
+selection and a model-placement-origin pivot. The exact chart, complete stack,
+reset, descendant and instance rules are proposed in [evaluation](#evaluation).
+They apply ordinary transforms after geospatial placement and transport that
+adjusted physical result to the requested output, rather than reuse the raw
+adjustment numbers in another CRS. Ancestor ordinary transforms do not contribute
+another absolute placement. These detailed conventions remain review choices.
 
 #### Decision on question 7: site calibration
 
@@ -1347,9 +1262,9 @@ The consumer's requested CRS is the resolved output context; an
 enclosing project binding does not require first producing a result in its CRS.
 This defines the output's meaning, not an engine's internal computational path.
 Authored project-specific placement must still be preserved under requirement 8;
-its adjustment coordinate context remains question 3. The October 2 discussion
+its adjustment coordinate context is proposed under question 3. The October 2 discussion
 confirmed this as the intended behavior rather than a new output mode to design.
-Whether the scene's output CRS may itself be geographic remains question 9.
+Question 9 proposes the associated Cartesian scene chart for geographic output.
 
 #### Decision on question 13: operation and resource responsibility
 
@@ -1397,14 +1312,15 @@ path to adding this support; no future carrier or model is chosen here.
 
 ### Schema design
 
-Two new schemas are introduced:
+Three schemas are proposed:
 
 | Schema | Type | Purpose |
 |--------|------|---------|
 | `GeospatialCRS` | Typed (IsA) | Defines a CRS as a first-class USD prim |
-| `GeospatialCRSBindingAPI` | Applied (HasA) | Binds a CRS definition to a `UsdGeomXformable` prim |
+| `GeospatialCRSBindingAPI` | Applied (HasA) | Associates a CRS definition with model or external-data content |
+| `GeospatialDataSource` | Typed, Xformable | Identifies an external absolute measurement domain |
 
-This two-schema approach separates the CRS *definition*
+This approach separates the CRS *definition*
 from the CRS *usage*,
 allowing a single CRS definition to be shared
 across many prims and scenes via USD references.
@@ -1459,13 +1375,12 @@ This is how multi-CRS scenes are composed
 
 For model placement, a direct binding establishes an anchor, and an inherited
 binding supplies coordinate context for ordinary offsets below it until the
-next direct binding, as recorded in the decision on question 5. The position,
-orientation and scale encoding at that anchor remains question 2. These are
+next direct binding, as recorded in the decision on question 5. The authored position and geodetic attitude are defined in the placement table. These are
 separate CRS placement attributes, not ordinary translate xformOps. A binding
 does not prescribe an authoring helper that rewrites the ordinary transform stack.
 
-The coordinate-property association for non-visual datasets remains question 11;
-this model-binding description does not identify their source coordinate properties.
+The external measurement type identifies absolute coordinate domains; see
+[external association](#external-measurement-association).
 
 ### Precision handling
 
@@ -1554,117 +1469,171 @@ def CoordinateReferenceSystem "WGS84_UTM11N" (
 
 ### CRS association and model placement
 
-**Proposed detailed definitions, under review in questions 2 and 6.** Friday's
-direction of new placement attributes and ordinary transforms afterward is
-already decided. The following names, types, fallbacks and basis conventions
-are concrete proposals to make that direction derivable.
+**Proposed definitions for questions 2 and 6.** These properties contain inputs
+only. Resolved positions, orientation, convergence, scale, distortion and bounds
+are query results. They are not additional properties of the source schema.
 
 #### Authored properties
 
-`GeospatialCRSBindingAPI` defines the following placement properties on the
-directly bound `UsdGeomXformable` anchor. The existing reference brings in the
-source CRS definition; these properties describe an instance's placement in it.
-They are not properties of the shared `CoordinateReferenceSystem` definition.
+`GeospatialCRSBindingAPI` on a directly bound model anchor defines:
 
 | Property | USD type | Variability | Fallback | Meaning |
 |---|---|---|---|---|
-| `crs:position` | `double3` | varying | None | Absolute source-CRS position of the model's placement origin. All three components must be supplied for a 3D placement. |
-| `crs:orientation` | `quatd` | varying | Identity rotation | Right-handed rotation from the model's placement axes to the source placement basis defined below. |
-| `crs:scale` | `double3` | varying | `(1, 1, 1)` | Dimensionless instance scale along the model's three placement axes, applied before orientation. |
+| `crs:position` | `double3` | varying | None | Absolute position of the model-placement origin, in the source WKT's units and height reference. |
+| `crs:orientation` | `quatd` | varying | Identity | Geospatial model attitude: a right-handed unit rotation of ordered model east/north/up axes into geodetic east/north/up at that position. |
 
-These fields supply the authored position, orientation and scale required by
-requirements 9–12 and 20. They do not duplicate axes, units, datum, projection
-parameters or reference-frame metadata already represented in WKT. They do not
-encode asset-convention repairs or output-dependent convergence and scale.
+The quaternion encodes physical attitude, not grid convergence. Its value need
+not change when an author re-expresses a placement position in another CRS of
+the same physical reference frame. Correcting the WKT while keeping the numeric
+position is a different authoring action and may move the placement. Neither
+action is a write performed by resolution. A datum change must preserve or
+explicitly revise the attitude's physical meaning; identical numbers alone do
+not assert that distinct datum normals coincide.
 
-A directly bound anchor with no resolved position has an incomplete placement;
-a reader must not invent a zero position or missing height. CRS library prims
-that merely define a coordinate system do not require a model placement.
-An explicitly blocked orientation or scale is unavailable; blocking a field
-does not instruct a consumer to substitute its fallback.
-Placement values must be finite and the orientation must represent a unit
-quaternion under Core's rotation semantics. Invalid authored values are
-validation failures, distinct from an engine discovering that a valid position
-is outside an operation's domain.
+No `crs:scale` is defined. Projection, calibration, elevation and unit factors
+are derived from the authoritative WKT and position, as part of the full point
+map. A scalar horizontal factor need not describe an arbitrary CRS conversion.
+Intentional object scaling, reflection and pivots use ordinary USD xformOps.
+
+A model position requires three finite components and a complete 3D CRS.
+Missing or blocked position is an error. An unauthored orientation uses its
+identity fallback; an explicitly blocked orientation is unavailable. Orientation
+must be finite and unit length. These properties are invalid on measurement
+carriers and on inherited-only model descendants: another absolute placement
+requires another direct model binding. CRS library prims require neither field.
 
 #### Position components
 
-Propose fixed semantic component order, independent of WKT storage order:
-
-| Source coordinate system | `crs:position` component order |
+| Supported coordinate system | Semantic tuple |
 |---|---|
-| Projected or Cartesian system with easting, northing and up | easting, northing, up |
-| Geographic 3D system | longitude, latitude, height |
-| Geocentric Cartesian system | geocentric X, geocentric Y, geocentric Z |
+| Projected/derived Cartesian horizontal plus declared vertical | easting, northing, up |
+| Geographic 3D | longitude, latitude, height |
+| Geocentric Cartesian | geocentric X, Y, Z |
 
-For projected components, the first row carries forward requirement 13. The
-geographic and geocentric rows are proposed answers to question 6. Geographic
-longitude-first order is a proposal choice, not a recorded Friday decision.
+Use the WKT unit for each component and its declared vertical reference.
+Tuple order is independent of WKT storage order and stage `upAxis`; adapt to
+the declared order at the engine boundary and reverse that adaptation on return.
+The initial component profile covers east/north/up axes and geocentric X/Y/Z.
+Other directions and coordinate-system types are unsupported by this profile,
+rather than guessed. A 2D CRS does not acquire height merely by adding a number.
+Unrelated engineering coordinates cannot establish an Earth location.
 
-Values use each component's declared WKT unit and height reference. A consumer
-maps these semantic roles to the declared source axis order at the engine
-boundary; it does not change the authored WKT to match USD axes. A latitude or
-longitude component is never inserted into a length-valued xformOp.
-Scene `upAxis` does not reorder `crs:position`.
+#### Geospatial model attitude and stage axes
 
-This table must not be described as covering every OGC coordinate-system type.
-Polar directions, differently directed axes and other component sets need an
-explicit mapping before they can be claimed as supported. A two-axis CRS alone
-does not supply the height reference for a 3D placement.
+Use the source datum's ellipsoid-normal east/north/up (ENU) at the placement
+position, including for projected and geocentric source CRSs. Establish that
+position in the datum's 3D geographic CRS first; a required vertical conversion
+must succeed. Deflection of the vertical is outside this ellipsoid-normal model.
+The existing [geocentric/topocentric construction](https://proj.org/en/stable/operations/conversions/topocentric.html)
+defines its origin and basis. At a geographic pole the recorded longitude
+selects the reference meridian for the ENU basis. An unavailable geodetic
+position or normal is an error, not a substitute basis.
 
-#### Orientation and scale basis
+Map a conformed stage vector to ordered model ENU as follows, multiplying by
+`metersPerUnit` to obtain metres:
 
-Propose the following bases so that an identity quaternion has a defined meaning:
+| Stage up axis | `(E,N,U)` from stage `(x,y,z)` |
+|---|---|
+| Z-up | `(x,y,z)` |
+| Y-up | `(x,-z,y)` |
 
-- In a projected or derived Cartesian grid, orientation is relative to that
-  grid's ordered placement axes. Grid north is not silently replaced by true
-  north, and grid distance is not silently replaced by ground distance.
-- At a geographic position, orientation is relative to the geodetic
-  east–north–up tangent basis at that position. Up is the ellipsoid normal.
-  Use the existing EPSG geocentric/topocentric construction; angular coordinate
-  increments are not model distances. A gravity-related height remains a
-  gravity-related height and any necessary vertical conversion must succeed
-  explicitly before this ellipsoidal construction can be evaluated.
-- In a geocentric Cartesian CRS, orientation is relative to geocentric X/Y/Z.
-  An upright building in that CRS generally needs a non-identity orientation.
+Both mappings are right-handed. Rotate this metric vector by the authored
+quaternion, then embed it in the source datum's geocentric coordinates using
+the ENU origin/basis. This defines the model's finite point map, not just an
+origin or derivative. Convert those points through the source CRS as needed;
+the WKT's projection, calibration and vertical conversions are retained.
+Model distances are physical local lengths in scene units, not angular
+increments or an assumed metre of projected grid. Absolute survey/grid samples
+use the measurement role below instead of this local-model interpretation.
 
-The geographic basis proposal follows established
-[EPSG/PROJ topocentric conversion](https://proj.org/en/stable/operations/conversions/topocentric.html).
-It is a convention to confirm with the geospatial authors, particularly where
-survey vertical and ellipsoid-normal vertical differ; Friday did not specify it.
+Heading/pitch/roll are a human-readable presentation of the quaternion, not
+three additional authored authorities. For the proposed presentation, model
+forward is ordered +N. Heading is clockwise from true north. Intrinsic heading,
+pitch and roll correspond, in Core row-vector form, to
+`R_N(roll) * R_E(pitch) * R_U(-heading)` with angles in degrees. A pure positive
+pitch raises forward; positive roll follows the right-hand rule about forward.
+The quaternion and its source-space slerp avoid an extra Euler interpolation
+contract. The common matrix convention is the one in USD Core.
 
-The quaternion uses the existing OpenUSD unit-quaternion meaning, rather than a
-new Euler-angle order. Scale acts along the model's placement axes before
-rotation into the source basis: Core's row-vector convention orders these two
-authored operations as `S * R`. This is their mutual order, not a complete
-point-evaluation formula without the stage/basis mappings below. The placement
-origin is the pivot; there is no additional CRS pivot attribute. An authored
-ordinary USD pivot remains part of the later xform stack.
+### External measurement association
 
-Position units do not set geometry units. Model offsets remain ordinary scene
-distances under requirement 14. Their relation to source-CRS length units is a
-unit conversion, separate from the dimensionless instance scale. Components
-must be expressed in a common length unit before a Euclidean rotation; a
-compound CRS can declare different horizontal and vertical units. A WKT
-projection or site-calibration scale and an authored instance scale are
-distinct: a reader must not apply the same conversion factor through both.
-Unit/up-axis repairs for an imported asset remain the writer's or assembler's
-responsibility.
+**Proposed carrier for question 11.** Add a concrete typed
+`GeospatialDataSource` derived from `UsdGeomXformable`, with a direct
+`GeospatialCRSBindingAPI`. Its type identifies absolute external coordinates;
+it is not a model anchor and has no `crs:position` or `crs:orientation`.
 
-**Remaining frame definition under question 6:** the mapping from a conformed
-model's stage axes into this ordered source basis, and from a resolved basis
-back to stage axes, still needs an exact convention. In particular, an identity
-orientation in a Y-up stage cannot be derived solely from an east/north/up
-tuple order. Ordering the authored scale and orientation does not silently
-supply this missing mapping or define how scene-unit offsets become source
-coordinates. No asset-correction transform may be inferred or authored by the
-resolver to fill it.
+| Property | USD type | Variability | Fallback | Meaning |
+|---|---|---|---|---|
+| `data:asset` | `asset` | uniform | None | External dataset, resolved by the ordinary asset resolver relative to its authoring layer. |
+| `data:format` | `token` | uniform | None | Association profile: `CF`, `GeoTIFF` or `GeoJSON`. |
+| `data:field` | `string` | uniform | None | Selected measurement variable, raster band or feature property. |
+| `data:coordinateDomain` | `string` | uniform | None | Selected format-defined coordinate domain. |
 
-Propose permitting finite signed scale components as ordinary geometric scale;
-reflection does not change the CRS axis declaration. A zero component yields a
-singular placement. Forward locations can still be computed, but a request
-requiring its inverse must fail visibly. This policy, and the proposed identity
-fallbacks, require review rather than being inferred from prototype behavior.
+These are association facts, not duplicate CRS metadata or computed coordinates.
+All are required; an empty field is permitted only for GeoJSON geometry-only
+extraction. Blocked, missing or ambiguous associations fail. Several domains in
+one container use separately bound carriers. Samples retain their original
+indices, values, masks, coordinate associations and observation/forecast times.
+Resolution performs no resampling, measurement interpolation or source writes.
+
+For [CF 1.12](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html),
+the field is the exact variable name and the domain the exact `grid_mapping`
+variable name. Its associated coordinates, including expanded multiple-mapping
+syntax, select the domain; dimension coordinates and auxiliary coordinates must
+cover the selected variable's sample domain. Coordinate roles and units come
+from CF metadata, not names or magnitudes. CF/WKT declarations must be mutually
+consistent. Pressure or another non-height vertical coordinate is not a height.
+
+For [GeoTIFF 1.1](https://docs.ogc.org/is/19-008r4/19-008r4.html), the field is a
+one-based band number and the domain a zero-based IFD number, both decimal
+strings without padding. Raster-to-model mapping and PixelIsArea/PixelIsPoint
+semantics determine sample locations. For [RFC 7946 GeoJSON](https://www.rfc-editor.org/rfc/rfc7946),
+the domain is `geometry` and the field a feature-property name or the empty
+string. Retain feature/geometry indices and RFC coordinate/height semantics;
+legacy GeoJSON with another CRS is unsupported by this association profile.
+
+The composed WKT is the sole authored CRS authority. An embedded format
+definition must be semantically equivalent after its format-defined axis/unit
+mapping, with a compatible vertical reference; otherwise fail. Text inequality
+alone is not a conflict. No adapter may quietly override either declaration.
+
+Dimensionality is retained. A 2D domain supports 2D coordinate queries and planar
+adjustments in a Cartesian working CRS; it supplies no height or 3D frame.
+A 3D request, non-planar adjustment or geographic working-frame adjustment that
+requires an unavailable height fails. This is a known dimensional requirement,
+not permission to invent zero height. Observation time is not coordinate epoch.
+
+Ordinary transforms on the carrier adjust converted absolute sample locations
+in the fixed working context defined below. The original dataset and its CRS
+remain unchanged. Optional visualization and analytical queries consume these
+same adjusted locations; adding a model anchor again would double-place them.
+
+### Dependency declaration with Profiles
+
+**Proposed integration for question 12.** Use the existing
+[Profiles capability-usage carrier](https://openusd.org/release/user_guides/schemas/UsdProfiles/overview.html).
+Propose the capability identity `usd.geospatial.crsResolution`, dependent on
+`usd`; this spelling is for registry review, not a claim of existing registration.
+Binding and measurement schemas imply that identity in schema plugin metadata.
+A bare CRS library definition does not imply placed-content dependency.
+
+A publishable scene's composed `defaultPrim` carries `ClaimsAPI` and
+`customData.profilesInfo.capabilityUsages["usd.geospatial.crsResolution"] = "hard"`
+if any retained content requires CRS resolution. The summary covers the entire
+published composition, including content outside that subtree. Referenced
+assemblies expose the same summary on their interface prim outside payloads.
+The consumer reads this authored summary without traversal or loading payloads.
+Capability usages are publisher claims; schema implications or runtime
+discovery alone do not establish complete assembly coverage.
+
+Writers maintain the conservative union when assembling, editing references,
+selecting variants and exporting. An unavailable dependency summary is unknown
+and retains the hard claim. A publisher may inspect/load content to discharge
+uncertainty, but absence of a claim or an unloaded payload is not proof of no
+dependency. Core composition still applies; validation reports a stronger
+opinion that wrongly drops or weakens required coverage. Resolution never repairs
+the authored claim. Export can remove it only after every retained use has
+been baked into ordinary Cartesian data; absolute measurement domains retain it.
 
 ### WKT string normalization
 
@@ -1763,8 +1732,10 @@ A consumer-selected output CRS governs the requested result. When none is
 selected, the existing scene-default pattern uses the CRS bound to the composed
 `defaultPrim`, as described under question 8. Output selection does not replace
 source CRS facts or reinterpret ordinary project adjustment numbers in different axes.
-If no output is requested and the composed `defaultPrim` supplies no available
-CRS binding, the output context is unspecified and the resolve request fails;
+For a standalone Cartesian export, the typed default CRS definition is the
+default context under the explicit-export rule below. Otherwise, if no output
+is requested and the composed `defaultPrim` supplies no available CRS binding,
+the output context is unspecified and the resolve request fails;
 an engine must not invent a default geographic or projected CRS.
 
 Rendering, bounds, instances, physics and non-visual queries use the same
@@ -1804,11 +1775,11 @@ frames and evaluation roles give them distinct meanings.
 
 This example uses the same Cartesian working and output context, Lambert-93 in
 metres with ellipsoidal height, and an explicitly authored ordinary USD pivot at
-the shown placement. It does not choose an implicit pivot, demonstrate transport
+the adjustment chart's zero, which is the shown model-placement origin. The proposed default pivot is now defined above; this figure does not demonstrate transport
 of an adjustment between different working/output CRSs, or certify a finite-extent
 affine approximation. The figures start with already-conformed local geometry;
 the writer's asset-unit and up-axis conformance obligations remain unchanged.
-Attitude, height and adjustments are illustrative, and the attitude input encoding
+Attitude, height and adjustments are illustrative, and the quaternion attitude encoding
 remains under review. The panels explain contributions to one resolved result,
 not required intermediate authoring or a particular evaluator architecture.
 The [expanded six-image sequence](figures/math-order/README.md) identifies the
@@ -1816,48 +1787,134 @@ individual driving fields and gives the example's ordinary transform stack.
 
 #### Evaluation
 
-Read the three placement fields from composed values. For sampled fields, use
-Core value resolution in the source representation: `double3` interpolation for
-position/scale and quaternion slerp for orientation when linear interpolation is
-selected; held interpolation remains held. Interpolate before CRS conversion,
-as requirement 20 already specifies. Do not invent longitude unwrapping or a
-motion model. Animation time is not a coordinate epoch.
+**Proposed complete evaluation contract for questions 3, 6, 9 and instances.**
+Read composed placement values under Core resolution. Position interpolates in
+its recorded CRS; quaternion orientation uses Core slerp when linear
+interpolation is selected. Held remains held. Interpolate before conversion;
+do not infer longitude unwrapping, a motion model or a coordinate epoch.
 
-Resolve the complete position, orientation and scale into the requested output
-context, including the change of local axes and distance scale. Converting only
-the position and retaining the original orientation and scale is insufficient.
-The three source fields do not require every resolved frame to be decomposable
-into a quaternion and diagonal scale. A conversion can introduce shear or
-nonlinear distortion; neither may be discarded merely to fit those source
-field types. A local affine result is an approximation subject to the stated
-extent and error contract, not a new authored source placement.
-Only after that CRS computation apply ordinary USD transforms, retaining their
-authored order, pivots and ordinary reset semantics. A direct binding excludes
-ancestor ordinary transforms at the independent absolute placement boundary;
-resolution does not author a reset or modify the source xformOps.
+For a model, let `F(x)` be the intrinsic finite point map defined by the
+placement position, stage-to-ENU mapping and geospatial attitude above. `x` is
+the point in the prim's authored local stage coordinates, before ordinary
+xformOps. Let `W` be the nearest strictly enclosing direct binding's CRS, or
+the source CRS if none exists. An invalid controlling binding fails; it is not
+skipped. A library reference alone is not another working-context declaration.
+The requested output `Q` never changes `W`.
 
-Changing the output CRS recomputes the result without replacing these source
-placement values. Applying a requested CRS conversion is separate from applying
-an intentional project adjustment. Question 3 still requires the exact working
-coordinate context for those ordinary adjustments when output changes.
-The proposed extent and result-comparison rules below address question 13;
-they do not supply the missing frame definitions in questions 3 and 6.
+The model adjustment chart `C_W` has zero at the model-placement origin
+converted to `W` before ordinary adjustments. For Cartesian `W`, subtract that
+origin, convert each component's WKT length unit to metres, then use the inverse
+stage-axis mapping and divide by `metersPerUnit`. For geographic `W`, use the
+full geocentric-to-ENU chart at that converted origin, in stage axes and units.
+Its inverse retains the vertical departure of curved geometry; it does not
+flatten a surface. The placement origin is therefore the ordinary zero/pivot
+unless an ordinary pivot is authored. There is no second CRS pivot attribute.
+
+Let `A` be the anchor's own complete Core/UsdGeom ordinary transform product,
+ordered as authored. The anchor's own stack is the post-placement adjustment in this chart.
+Descendant stacks retain their ordinary model-local meaning: let `D` be their
+Core product below the anchor, including writer-authored conformance. They
+define the model-local point supplied to the intrinsic placement, `F(x * D)`.
+This is a proposed clarification of the broad October 2 phrase "transforms
+afterward", not a claim that the call explicitly settled descendant semantics.
+It follows requirements 9 and 15 and the existing USD local-frame hierarchy.
+Interpreting raw child translations in working-grid axes would instead change
+their meaning when the model's geospatial attitude changes. A descendant reset removes the
+ordinary contributions above that reset, but retains inherited geospatial
+placement; another direct model binding starts another absolute anchor and
+excludes all ancestor ordinary transforms. A reset at the anchor does not
+remove its own local stack. In row-vector form the resolved point is
+
+`T_WQ(C_W^-1(C_W(T_SW(F(x * D))) * A))`.
+
+Here `T_SW` converts source to working CRS and `T_WQ` working to output.
+This formula specifies observable meaning, not a required engine path. An
+equivalent transported computation may avoid an unnecessary intermediate
+operation, especially when `A` is identity. It must preserve the same adjusted
+physical position and report the actual operations it used. Descendant translations are model-local offsets and follow the model's
+geospatial attitude. The anchor's ordinary translation is a working-chart
+adjustment. A descendant reset terminates `D` at that reset and makes `A`
+identity; it does not remove intrinsic placement. Reusing either stack's raw
+numbers in arbitrary output axes describes a different scene. Ordinary pivots, inverse ops, signed scales
+and reset markers follow UsdGeom. Finite singular transforms permit forward
+points, but inverse/frame requests that need an inverse fail.
+
+For an absolute measurement domain, replace `F(x)` with its native sample
+coordinate and apply the carrier's own ordinary stack in `W`. A Cartesian
+domain chart has the working CRS zero as origin, since the domain has no model
+placement origin; use ordinary pivots to choose another adjustment origin.
+A 3D geographic domain chart uses longitude/latitude/ellipsoidal height zero
+of the working datum as its ENU origin. The required height conversion must
+succeed. These chart origins are conventions, not inserted sample heights.
+For a 2D Cartesian domain use its two horizontal length components and reject
+out-of-plane coupling; no 3D position is created. Independent direct carrier
+bindings exclude ancestor ordinary transforms just as independent model
+bindings do. Its project adjustment is not a conversion of the stored dataset.
+
+#### Queries, scene charts and instances
+
+Coordinate queries return the requested CRS's semantic tuple and units.
+A relative-position query returns both resolved origins in `Q` and their
+component difference `from - to`, in `Q`'s declared units; it is not an inverse
+of the second model's local frame. Geographic differences are angular/height
+coordinate differences without implicit wrapping, not metric displacements.
+Physical distance uses the separate comparison rule below. A relative-frame
+query, when invertible, names its Cartesian chart and returns the full map or
+local derivative in that chart, with its approximation domain explicitly stated.
+
+For Cartesian output, scene geometry and bounds use that CRS's ordered length
+components, a consumer-selected numeric output origin, and the stage-axis/unit
+mapping. The default numeric output origin is zero. This origin is a runtime
+representation parameter, not an edit to source placement.
+
+**Proposed answer to question 9:** geographic output coordinates remain
+geographic, while ordinary scene geometry, frames and bounds use the associated
+geocentric Cartesian CRS of the same datum, ellipsoid and prime meridian, in
+metres, with the same output-origin rule. Results identify both coordinate CRS
+and scene chart. Angular tuples never become UsdGeom points or length matrices.
+The associated geocentric representation preserves global curvature and adds
+no source property. An explicit Cartesian export records its actual Cartesian
+CRS. A consumer asking for an angular Euclidean frame receives an unsupported
+request, rather than a fabricated length frame.
+
+Native instance proxies evaluate as equivalent expanded composed prims.
+Point-instancer instances use Core/UsdGeom positions, orientations, scales,
+prototype indices, masks and time behavior. An unbound prototype uses the
+instancer's inherited model placement; its ordinary prototype/instance product defines `D` in the instancer's local
+model frame, while the instancer anchor's own stack defines `A`. A directly bound prototype instead keeps
+its own absolute position and source CRS, using its nearest enclosing binding
+as `W` (or its own source as fallback). Its ordinary prototype stack is followed
+by the per-instance matrix, expressed in that same adjustment chart. The
+instancer's anchor and ancestor xformOps do not add a second absolute placement.
+Do not include the prototype's ordinary transform twice: evaluate its stack
+once and use Core's instance matrix excluding that prototype transform. Bindings
+inside a prototype follow the same independent-anchor rule. A resolved instance
+identity includes instancer path, instance ID/index and full prototype-relative
+prim path; names alone do not identify nested geometry uniquely.
+
+Local derivatives and finite pointwise results need not be representable as a
+quaternion and diagonal scale. Normal/tangent transport uses the derivative of
+the complete map in the named Cartesian chart: tangent vectors use the forward
+linear map, normals its inverse transpose and normalization. Singular normal
+transport fails. Existing primvar interpolation, indexing, orientation and
+face topology rules remain in force. A semantic point/vector/normal primvar
+follows that role; arbitrary numeric triples do not silently acquire one.
+Subdivision and curves require their consumed continuous domain to meet the
+extent/error contract, rather than treating their controls as the whole surface.
 
 ### Observable outcomes and failures
 
-Resolution leaves source layers unchanged. Unsupported requests, broken
-bindings and failed or incomplete operations fail visibly. Operation reporting
-must identify what was computed and distinguish engine estimates from the
-placement/error guarantee required over the stated extent.
+Resolution leaves source layers unchanged. Unsupported requests, broken bindings
+and failed or incomplete operations fail visibly. A batch may report individual
+failures, but cannot return an unchanged failed coordinate as a successful
+placement. Results identify coordinate CRS, scene chart where used, operation,
+attributed accuracy and any spatial/temporal approximation claim. Unknown
+accuracy is unknown, not zero.
 
-Explicit export is a separate act: it records the output CRS and time-sampling
-meaning, preserves dataset values and associations, and can be resolved by a
-fresh consumer without applying placement twice. The proposed sampling rules
-are below; measurement-coordinate association remains question 11.
-
-These obligations need a complete data model and normative runtime specification
-before independent implementation can claim proposal conformance. A prototype's
-choice of a projection engine or affine approximation does not fill that gap.
+Computed outputs are runtime data. A lightweight consumer can read an explicit
+derived Cartesian export containing ordinary USD matrices/geometry, without
+stored computed geospatial properties on the source. That export's once-only
+placement and fresh-reader obligations are specified below.
 
 ### Extent and result comparison
 
@@ -1875,7 +1932,13 @@ distance measure and bound. Its reference is pointwise evaluation of the same
 source placement, coordinate operation and ordinary-transform chain, not just
 conversion of the placement origin. The claim must cover the content actually
 consumed, including transformed geometry and bounds. A few representative
-points do not establish a bound over an entire extent. An implementation may
+points do not establish a bound over an entire extent. Finite sample/vertex
+queries can report pointwise results without a continuous-domain claim. Bounds
+on a resulting polygonal export cover its straight faces, not automatically
+the nonlinear image of the original continuous faces. A continuous scene-bound
+request must include those faces or the actual consumed subdivision/curve
+domain. An implementation that cannot certify it reports that request as
+unsupported; passing a sampled probe is not certification. An implementation may
 refine an approximation or split the work; if it cannot establish the requested
 bound for the requested extent, it reports that limitation instead of claiming
 the bound. No universal tile size or private default tolerance follows from
@@ -1901,7 +1964,7 @@ vertical reference, and their Euclidean combination as the agreement distance.
 Angular component residuals are reported separately; degrees and metres must
 not be combined as Cartesian components. This is an explicit proposed comparison
 convention, not an OGC-mandated error measure or a choice already agreed on the
-call. It does not establish a geographic scene frame under question 9.
+call. Geographic scene results use the associated Cartesian chart specified above.
 An acceptance distance is supplied by the request or documented comparison
 case, not guessed after seeing the results or stored in an undocumented scene
 attribute.
@@ -1917,6 +1980,21 @@ ordinary transform that a fresh reader will apply again. This changes the
 exported copy, not the source stage, and requires no private "already resolved"
 flag. Output bindings, coordinate associations and the dependency summary must
 describe what the exported copy actually requires.
+
+A standalone fully baked Cartesian geometry export uses a
+`CoordinateReferenceSystem` prim as its `defaultPrim`, with the recorded output
+`crs:wkt` and ordinary geometry/xforms beneath it. It carries no
+`GeospatialCRSBindingAPI` or model-placement fields: its descendants are already
+Cartesian scene content in that recorded context. Stage units/up-axis map those
+ordinary coordinates to the WKT length components as specified above. The
+definition records the coordinate system, not an object's placement. An ordinary
+USD viewer can read the geometry and matrices; a geospatial reader can identify
+the Cartesian context without a private flag and convert coordinates on request.
+This explicit-export context is distinguished by its composed type, not a file
+name or provenance layer. Referencing/assembling such a copy requires the writer
+to retain its coordinate context or explicitly re-author it under the model or
+measurement contract; an enclosing unrelated CRS must not silently reinterpret
+its ordinary coordinate numbers.
 
 For sampled output, the authored `timeSamples` keys record the actual exported
 sample schedule and the export authors the stage's existing `timeCodesPerSecond`
@@ -1953,8 +2031,7 @@ interpreting coordinates in their declared CRS units or performing a requested
 coordinate conversion. Scene conventions do not relabel source CRS coordinates.
 
 Requirement 13 fixes the coordinate-tuple component order for easting,
-northing and up, independently of source storage order. Question 6 also needs
-the exact representation of the resolved basis in stage axes and units. That
+northing and up, independently of source storage order. The proposed stage/basis mapping defines the representation in axes and units. That
 representation is not a change to stage metadata or a repair to source assets.
 The stage metric applies with the complete ordinary transform context, not as
 an automatic multiplier on every raw translate component; ordinary scales can
@@ -1989,8 +2066,8 @@ Existing geometry schemas and ordinary local transform semantics remain
 unchanged. Separately authored CRS placement describes a model's geospatial
 meaning. Coordinate datasets can have CRS meaning without being rendered
 geometry. The model-binding design retains its `UsdGeomXformable` applicability;
-question 11 concerns identifying measurement-coordinate properties with their
-CRS, without changing the ordinary interpretation of geometry vertices.
+the external association identifies absolute measurement coordinates without
+changing the ordinary interpretation of geometry vertices.
 
 ## Industry use cases
 
@@ -2428,3 +2505,18 @@ the existing POC implementations, the usdGeospatial prototype README,
 OGC standards documentation, and the OpenUSD proposals format guidelines.
 All technical content was reviewed, verified,
 and refined by the human authors.
+
+## Appendix C: Distinguishing examples
+
+These cases illustrate the proposed contracts; they add no normative fields.
+
+| Case | Distinguishing result |
+|---|---|
+| Same physical tower re-expressed in geographic, CC49 and Lambert-93 coordinates | Geodetic model attitude and local lengths stay physical; output grid convergence and scale come from resolution, not stored output properties. |
+| Tower attitude turns 90 degrees, then a descendant translates along working-grid X | The descendant translation follows the model's turned X, while an anchor adjustment follows working-grid X; interpreting both as raw working offsets loses local conformance. |
+| Two independent origins, one at 100 and its directly bound child at 20 | Relative output-coordinate difference is 80; the child does not accumulate 100 or return a reference-model-local offset. |
+| Project-adjusted satellite imagery | Original pixel values, indices and native coordinates remain unchanged; queries and visualization include the same working-frame adjustment even for another output CRS. |
+| Global climate domain | Measurement times remain attached to the same samples; geographic coordinate queries and geocentric scene visualization use the same locations without a global flattened surface. |
+| Independently bound point-instancer prototype | Each instance retains the prototype's source georeference and applies its per-instance adjustment once; the instancer does not add a second absolute anchor. |
+| Linear mesh exported after a nonlinear map | Vertex and exported-polygon bounds alone do not certify the continuous image of the original face; a requested continuous guarantee needs separate evidence. |
+| Scene with an unloaded geospatial payload | The published interface retains the conservative hard Profiles claim; a consumer need not load the payload to detect dependency. |

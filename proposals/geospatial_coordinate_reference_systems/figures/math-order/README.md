@@ -1,8 +1,8 @@
 # Geospatial placement and ordinary USD transform order
 
 This informative sequence illustrates the agreed ordering: resolve geospatial
-placement, then apply the ordinary USD adjustment. It neither adds computed
-placement attributes to the source schema nor settles the attitude input encoding.
+placement, then apply the ordinary USD adjustment. It adds no computed
+placement attributes to the source schema. The quaternion encoding remains proposed.
 All height, attitude and adjustment values are illustrative. The source is one
 static RGF93 v2b realization; the requested output is its Lambert-93 projection
 with ellipsoidal height. It does not demonstrate a gravity-related height or
@@ -86,10 +86,10 @@ The explicitly authored pivot stays fixed and the tower's dimensions grow by
 
 The example's Cartesian working context is the same as its requested output
 context, so no working-to-output transport is needed. An ordinary USD pivot is
-explicitly authored at the shown resolved position. That fixed, chosen input
-avoids selecting a default pivot for question 3; it is not a runtime-maintained
-copy of the geospatial position. With row-vector notation and resolved point
-`q`, pivot `P`, ordinary scale `S` and ordinary rotation `R`, this contribution
+explicitly authored at chart zero, which is the model-placement origin under
+the proposed working-chart rule. It is not a runtime-maintained copy of the
+absolute geospatial position. With row-vector notation and resolved point
+`q`, placement origin `P`, ordinary scale `S` and ordinary rotation `R`, this contribution
 is `(q - P) * S * R + P`. Scale is shown separately above; this snapshot adds
 only the 20-degree counterclockwise rotation about working-grid +Z. The blue
 outline is the scaled state, before rotation. The base position `P` and the
@@ -110,13 +110,13 @@ for illustration; they are not two separately authored USD operations.
 
 The example's stack is listed below in USD's `xformOpOrder` order, from least
 local to most local. A point encounters the listed operations in reverse order.
-The stack is the post-CRS adjustment; its inverse-pivot operation acts on the
-already-resolved point and does not move ordinary USD transforms into the CRS
+The stack is the post-CRS adjustment in the origin-centred chart; its inverse-pivot operation acts on the
+already-resolved chart point and does not move ordinary USD transforms into the CRS
 definition or source placement computation.
 
 ```usda
 double3 xformOp:translate:adjust = (120, -60, 0)
-double3 xformOp:translate:pivot = (648237.3015492002, 6862271.681553578, 80)
+double3 xformOp:translate:pivot = (0, 0, 0)
 double xformOp:rotateZ:adjust = 20
 double3 xformOp:scale:adjust = (1.15, 1.15, 1.15)
 uniform token[] xformOpOrder = [
@@ -144,3 +144,8 @@ purposes; it is not surveyed Paris ground truth or a proposal conformance run.
 [SDC PERFORMANCE](https://sketchfab.com/Lambo_SC04),
 [original model](https://sketchfab.com/3d-models/free-la-tour-eiffel-8553f94d06e24cb4b0fde1080f281674),
 licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+The absolute-coordinate expression shown above and the zero-pivot chart stack
+are equivalent. The PNG snapshots retain the same physical poses. Any displayed
+absolute pivot value is the explanatory coordinate `P`, not another source
+geospatial field.

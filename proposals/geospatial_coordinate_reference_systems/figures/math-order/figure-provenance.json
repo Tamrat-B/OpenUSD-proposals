@@ -13,7 +13,6 @@
     "license": "https://creativecommons.org/licenses/by/4.0/"
   },
   "authored_geospatial_inputs": {
-    "crs:binding": "/CRS/RGF93v2b",
     "crs:position": [
       2.2945,
       48.8584,
@@ -61,11 +60,11 @@
     ]
   },
   "ordinary_usd_inputs": {
-    "working_context": "Lambert-93 projected Cartesian frame, same as requested output; stage units metres and Z-up.",
+    "working_context": "Placement-centred Lambert-93 adjustment chart, stage metres and Z-up; chart zero is the resolved model origin.",
     "explicit_authored_pivot": [
-      648237.3015492002,
-      6862271.681553578,
-      80.0
+      0,
+      0,
+      0
     ],
     "xformOp:scale:adjust": [
       1.15,
@@ -84,6 +83,11 @@
       "xformOp:rotateZ:adjust",
       "xformOp:scale:adjust",
       "!invert!xformOp:translate:pivot"
+    ],
+    "equivalent_absolute_coordinate_pivot": [
+      648237.3015492002,
+      6862271.681553578,
+      80.0
     ]
   },
   "final_anchor": [
@@ -109,7 +113,7 @@
     "Authored attitude encoding remains under review; the source geographic quaternion illustrates the current candidate.",
     "Panels show mathematical contributions, not prescribed intermediate authoring or an animation of geographic travel.",
     "The CRS is static and uses ellipsoidal height; this does not demonstrate an NGF-IGN69 conversion or an epoch transformation.",
-    "No universal default pivot is chosen. The ordinary USD pivot is explicitly authored.",
+    "The example authors zero as the ordinary pivot in the placement-centred chart; absolute illustration coordinates show the equivalent resolved base.",
     "No finite-extent affine certificate is inferred from the displayed local projection factors."
   ],
   "verification": {
@@ -129,5 +133,10 @@
     "front_markers": "Plan-view direction guide; local +Y chosen as model front only for this example.",
     "translation_components": "East and south components of one authored translation, not separately authored operations.",
     "crs_conversion": "Coordinate representation changes; no geographic travel is implied."
-  }
+  },
+  "crs_association": {
+    "applied_schema": "GeospatialCRSBindingAPI",
+    "composition": "Reference the CRS definition onto the anchor; no crs:binding relationship."
+  },
+  "layout_source_sha256": "d182c1806b9d34091513a59f08d76052fa48e7ba060d2285a3f3d9a8ca2e4b35"
 }
