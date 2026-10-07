@@ -1753,41 +1753,101 @@ an undocumented second convention. This does not relabel ordinary scene axes.
 
 #### Placement-order illustration
 
-![Six fixed-camera Eiffel Tower snapshots: local geometry, authored attitude, CRS-resolved placement, then ordinary USD scale, rotation and translation; previous-state outlines, height guides and plan-view arrows expose each change](figures/math-order/crs-usd-math-order.png)
+**Informative.** The six views below explain the anchor example under [Evaluation](#evaluation).
+They show contributions to one resolved result, not required intermediate prims
+or a particular evaluator architecture. The source schema holds authoritative
+position and model-attitude inputs; computed placement results are runtime data.
 
-The source geospatial data model records authoritative inputs. Resolving those
-inputs into a requested coordinate context produces placement and coordinate-query
-results; those computed outputs do not become additional authored properties of
-the source geospatial schema. An explicit resolved export is a separate authoring
-operation, with its own representation and the existing obligation to represent
-each placement effect once.
+The source is a static RGF93 v2b realization. Both working and output contexts
+are Lambert-93 in metres with ellipsoidal height, so this example needs no
+working-to-output transport. Geometry is already conformed to stage metres and
+Z-up; height, attitude and adjustments are illustrative. The quaternion encoding
+remains proposed. This is not surveyed placement, an epoch or gravity-related
+height conversion, or a finite-extent affine certificate.
 
-The illustration separates CRS placement and resolution from the ordinary USD
-adjustment that follows. The latter can change the model's final scene position,
-orientation and size without modifying its authored CRS position, model attitude
-or CRS definition. Scene consumers and coordinate queries include the same final
-adjustment. A change of coordinate representation alone does not move the model
-physically.
+Every panel uses the same camera and ground grid. Blue outlines show the
+previous state; height guides, model-front markers and translation arrows make
+each change visible.
 
-In this geographic-source example, **geospatial model attitude** describes
-authored orientation relative to local east/north/up at the placement position.
-The later **USD rotation adjustment** is evaluated in the working Cartesian
-frame as part of the ordinary post-placement transform stack. Their reference
-frames and evaluation roles give them distinct meanings.
+##### 1. Local geometry
 
-This example uses the same Cartesian working and output context, Lambert-93 in
-metres with ellipsoidal height, and an explicitly authored ordinary USD pivot at
-the adjustment chart's zero, which is the shown model-placement origin. The
-proposed default pivot is specified in [evaluation](#evaluation); this figure
-does not demonstrate transport of an adjustment between different working/output
-CRSs, or certify a finite-extent
-affine approximation. The figures start with already-conformed local geometry;
-the writer's asset-unit and up-axis conformance obligations remain unchanged.
-Attitude, height and adjustments are illustrative, and the quaternion attitude encoding
-remains under review. The panels explain contributions to one resolved result,
-not required intermediate authoring or a particular evaluator architecture.
-The [expanded six-image sequence](figures/math-order/README.md) identifies the
-individual driving fields and gives the example's ordinary transform stack.
+![Local Eiffel Tower geometry in an already-conformed metre and Z-up model frame](figures/math-order/01-local-model.png)
+
+The 300-metre model starts in its local frame, without geographic placement.
+
+##### 2. Geospatial model attitude
+
+![The source model attitude turns the local Eiffel Tower model 30 degrees clockwise from true north](figures/math-order/02-authored-attitude.png)
+
+The proposed authored `crs:orientation` represents a 30-degree clockwise heading
+from true north, with zero pitch and roll, in local geodetic east/north/up.
+Here model +Y is chosen as front, not prescribed as a general convention.
+For this right-handed Z-up example, the attitude is a minus-30-degree turn about
+local +Up. It is a placement input, distinct from the later ordinary USD rotation
+about working-grid +Z. Heading/pitch/roll are an authoring presentation of the
+model attitude; this illustration does not decide the stored encoding.
+
+##### 3. CRS placement and resolution
+
+![The bound CRS, authored position and model attitude resolve into Lambert-93, with computed coordinates and projection factors](figures/math-order/03-crs-resolved.png)
+
+The bound `crs:wkt`, `crs:position` and model attitude resolve the model points
+into Lambert-93. A change of coordinate representation alone does not move the
+model physically. The displayed convergence and projection scale are local
+diagnostic results, not authored source properties or a complete affine map.
+View-origin subtraction changes only the display coordinates.
+
+##### 4. Ordinary USD scale
+
+![A previous-state outline and height guides show ordinary USD scale enlarging the Eiffel Tower from 300 to 345 metres around the explicitly authored base pivot](figures/math-order/03b-usd-scale.png)
+
+`xformOp:scale:adjust = (1.15, 1.15, 1.15)` enlarges the model to 345 metres.
+The explicitly authored ordinary pivot is chart zero, the resolved placement
+origin in this example. The base stays fixed; the blue outline is the preceding
+CRS-resolved state.
+
+##### 5. Ordinary USD rotation
+
+![After ordinary USD scale, a previous-state outline and plan-view front markers show a 20-degree counterclockwise turn around the explicitly authored base pivot](figures/math-order/04-usd-rotate-scale.png)
+
+`xformOp:rotateZ:adjust = 20` turns the scaled model counterclockwise about
+working-grid +Z. The base and scaled size stay fixed. The blue outline and
+front markers distinguish this turn from the preceding model attitude.
+
+##### 6. Ordinary USD translation
+
+![The final ordinary USD translation moves the tower 120 metres east and 60 metres south, while its source geospatial properties remain unchanged](figures/math-order/05-usd-translate.png)
+
+`xformOp:translate:adjust = (120, -60, 0)` moves the model 120 metres east and
+60 metres south after scale and rotation. Rendering and non-visual coordinate
+queries include that final adjustment; the source geospatial inputs stay
+unchanged. The arrows illustrate components of one translation.
+
+The example's stack below is listed in `xformOpOrder` order, from least local
+to most local; a point encounters the operations in reverse order. It is the
+anchor's post-placement adjustment in the origin-centred working chart. The
+zero pivot is an ordinary authored input, not a maintained copy of the absolute
+geospatial position. Equivalently, in row-vector absolute coordinates, a
+resolved point `q` becomes `(q - P) * S * R + P + t`, where `P` is the placement
+origin and `S`, `R` and `t` are the shown ordinary scale, rotation and translation.
+Descendant, reset and independent-instance behavior is specified in Evaluation.
+
+```usda
+double3 xformOp:translate:adjust = (120, -60, 0)
+double3 xformOp:translate:pivot = (0, 0, 0)
+double xformOp:rotateZ:adjust = 20
+double3 xformOp:scale:adjust = (1.15, 1.15, 1.15)
+uniform token[] xformOpOrder = [
+    "xformOp:translate:adjust",
+    "xformOp:translate:pivot",
+    "xformOp:rotateZ:adjust",
+    "xformOp:scale:adjust",
+    "!invert!xformOp:translate:pivot"
+]
+```
+
+See [figure provenance and credits](figures/math-order/README.md) for the source
+asset, inputs and reproduction record.
 
 #### Evaluation
 
