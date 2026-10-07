@@ -1,12 +1,13 @@
 # Geospatial Coordinate Reference Systems for OpenUSD
 
-**Local review candidate.** This revision proposes a complete initial-scope
-contract for author review. It retains the October 2 scope and reference-based
+**Review candidate.** This revision proposes an initial-scope contract for
+author review. It retains the October 2 scope and reference-based
 binding decisions, and separates authored geospatial inputs from computed
 results. The field, working-frame, measurement, Profiles and result conventions
-below are proposed definitions, not a record that the group adopted them.
-Implementations are checked against this exact candidate; successful execution
-does not establish either group agreement or complete implementation coverage.
+below are proposed leans informed by earlier implementation attempts, not a
+record that the group adopted them. Implementations are checked against the
+candidate; successful execution does not establish either group agreement or
+complete implementation coverage.
 
 ## Contributors
 
@@ -1741,7 +1742,8 @@ an engine must not invent a default geographic or projected CRS.
 Rendering, bounds, instances, physics and non-visual queries use the same
 resolution under requirement 17. Coordinate and relative-placement queries
 follow requirement 18. Geographic coordinate queries are already supported;
-geographic scene geometry, frames and bounds remain question 9.
+the proposed scene representation for geographic output is specified under
+[question 9](#queries-scene-charts-and-instances).
 Authored and returned CRS coordinate tuples use the semantic component order
 in the position table. Axis-order adaptation at an engine boundary is reversed
 before returning a query result; an engine's native array order does not become
@@ -1775,8 +1777,10 @@ frames and evaluation roles give them distinct meanings.
 
 This example uses the same Cartesian working and output context, Lambert-93 in
 metres with ellipsoidal height, and an explicitly authored ordinary USD pivot at
-the adjustment chart's zero, which is the shown model-placement origin. The proposed default pivot is now defined above; this figure does not demonstrate transport
-of an adjustment between different working/output CRSs, or certify a finite-extent
+the adjustment chart's zero, which is the shown model-placement origin. The
+proposed default pivot is specified in [evaluation](#evaluation); this figure
+does not demonstrate transport of an adjustment between different working/output
+CRSs, or certify a finite-extent
 affine approximation. The figures start with already-conformed local geometry;
 the writer's asset-unit and up-axis conformance obligations remain unchanged.
 Attitude, height and adjustments are illustrative, and the quaternion attitude encoding
@@ -1972,9 +1976,12 @@ attribute.
 ### Explicit export and sampling
 
 **Proposed clarification of question 14 using existing USD fields.** A resolved
-export is a new authored dataset in its recorded output CRS. It retains the
-ordinary interpretation of its geometry, coordinates and measurements. Every
-baked placement effect is represented once: an effect included in exported
+export is a new authored dataset in its recorded output CRS. Baking resolved
+georeferencing into ordinary UsdGeom geometry and xformOps lets an unaware
+consumer use the derived copy without geospatial computation, over its stated
+spatial extent and time coverage. The export retains the ordinary interpretation
+of its geometry, coordinates and measurements. Every baked placement effect is
+represented once: an effect included in exported
 coordinate or geometry values cannot also remain as an unapplied placement or
 ordinary transform that a fresh reader will apply again. This changes the
 exported copy, not the source stage, and requires no private "already resolved"
