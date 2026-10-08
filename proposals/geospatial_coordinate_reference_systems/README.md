@@ -4,8 +4,10 @@
 baseline. The detailed model and runtime contract below form the follow-up
 candidate evaluated against them. Author feedback supports geographic source
 positions, input-only placement, the anchor/descendant transform distinction,
-site calibration through WKT and conservative dependency declarations. Exact
-orientation storage and the remaining detailed conventions still need alignment.
+site calibration through WKT and conservative dependency declarations.
+The preferred authored orientation is one heading/pitch/roll tuple, grounded
+in placement-authoring workflows; this and the remaining detailed conventions
+still need author alignment.
 Execution evidence distinguishes proposed meaning, author agreement,
 implementation defects and unverified coverage; it does not establish complete
 conformance.
@@ -789,6 +791,9 @@ are distinct steps.
    A scan records ground distances, while a projected grid may have a
    different distance scale and grid north; converting the model's origin
    alone does not align its geometry with survey control.
+   A placement author enters and checks an origin and physical orientation,
+   for example a surveyed position and heading/pitch/roll, then corrects those
+   inputs without replacing them with projection results.
    Place a tower on a site and not one byte of the tower changes;
    move the position and everything beneath it moves with it.*
 
@@ -1185,7 +1190,7 @@ The proposal remains subject to author review.
 | # | Question | Requirements and status |
 |--:|---|---|
 | 1 | May a model-placement position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 17, 18, 19, 20, 22, 30; Decided: [geographic source positions](#decision-on-question-1-geographic-source-positions); encoding remains question 2 |
-| 2 | What field definitions and conventions record source position and physical model attitude, with computed projection effects kept out of the source schema? | 9, 10, 11, 12, 20; Input-only meaning agreed; [position and attitude candidate](#crs-association-and-model-placement); quaternion versus one heading/pitch/roll tuple remains open, with no `crs:scale` |
+| 2 | What field definitions and conventions record source position and physical model attitude, with computed projection effects kept out of the source schema? | 9, 10, 11, 12, 20; Input-only meaning agreed; preferred [position and heading/pitch/roll candidate](#crs-association-and-model-placement), including explicit orientation-sample evaluation, awaits alignment; no `crs:scale` |
 | 3 | What coordinate context applies to project adjustments expressed as ordinary USD transforms when the consumer changes the requested output CRS? | 5, 6, 8, 9, 11, 15, 16, 19; Anchor project adjustments and descendant model-local transforms agreed; [complete chart, reset and instance contract](#evaluation) remains a review candidate |
 | 4 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15; Decided: [writer or assembler](#decision-on-question-4-authored-unit-and-up-axis-conformance) |
 | 5 | Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27; Decided: [direct binding establishes the anchor](#decision-on-question-5-the-position-and-offset-boundary) |
@@ -1224,12 +1229,16 @@ Source position and physical model attitude are authored inputs distinct from
 ordinary USD transforms. Projection convergence, scale and resolved orientation
 are runtime results, not additional source properties; no `crs:scale` is proposed.
 Intentional object scaling uses ordinary USD xformOps. This input-only meaning
-has author support. The candidate below stores attitude as `quatd` with a
-normative heading/pitch/roll presentation. The alternative under discussion
-stores one heading/pitch/roll tuple. Its exact field definition and sample
-evaluation would need an explicit contract before replacing the candidate;
-converting angles to a quaternion does not by itself make Core interpolate a
-`double3` as an orientation. The stored type remains an alignment question.
+has author support.
+
+The preferred candidate stores one heading/pitch/roll tuple. A placement author
+can enter, inspect and correct the same physical angles supplied by a survey or
+orientation measurement, with their north/up references stated. This addresses
+the workflow under requirement 9 directly. Tam's alternative stores a quaternion
+and requires a normative heading/pitch/roll presentation; it remains a valid
+comparison, but Core interpolation convenience alone does not choose the source
+representation. The authored-angle candidate and its evaluation below are
+proposed for author alignment, not recorded as unanimous agreement.
 
 #### Decision on question 5: the position and offset boundary
 
@@ -1527,9 +1536,9 @@ are query results. They are not additional properties of the source schema.
 | Property | USD type | Variability | Fallback | Meaning |
 |---|---|---|---|---|
 | `crs:position` | `double3` | varying | None | Absolute position of the model-placement origin, in the source WKT's units and height reference. |
-| `crs:orientation` | `quatd` | varying | Identity | Geospatial model attitude: a right-handed unit rotation of ordered model east/north/up axes into geodetic east/north/up at that position. |
+| `crs:orientation` | `double3` | varying | `(0, 0, 0)` | Heading, pitch and roll in degrees, in that order, defining physical model attitude against local geodetic east/north/up. |
 
-The quaternion encodes physical attitude, not grid convergence. Its value need
+The tuple encodes physical attitude, not grid convergence. Its value need
 not change when an author re-expresses a placement position in another CRS of
 the same physical reference frame. Correcting the WKT while keeping the numeric
 position is a different authoring action and may move the placement. Neither
@@ -1544,8 +1553,9 @@ Intentional object scaling, reflection and pivots use ordinary USD xformOps.
 
 A model position requires three finite components and a complete 3D CRS.
 Missing or blocked position is an error. An unauthored orientation uses its
-identity fallback; an explicitly blocked orientation is unavailable. Orientation
-must be finite and unit length. These properties are invalid on measurement
+zero-angle identity fallback; an explicitly blocked orientation is unavailable.
+All three angles must be finite; their order, units and evaluation are defined
+below. These properties are invalid on measurement
 carriers and on inherited-only model descendants: another absolute placement
 requires another direct model binding. Validation must report an authored or
 blocked placement field in either invalid role; resolution must reject that
@@ -1589,8 +1599,9 @@ Map a conformed stage vector to ordered model ENU as follows, multiplying by
 | Z-up | `(x,y,z)` |
 | Y-up | `(x,-z,y)` |
 
-Both mappings are right-handed. Rotate this metric vector by the authored
-quaternion, then embed it in the source datum's geocentric coordinates using
+Both mappings are right-handed. Rotate this metric vector by the physical
+orientation evaluated from the authored angles, then embed it in the source
+datum's geocentric coordinates using
 the ENU origin/basis. This defines the model's finite point map, not just an
 origin or derivative. Convert those points through the source CRS as needed;
 the WKT's projection, calibration and vertical conversions are retained.
@@ -1598,14 +1609,23 @@ Model distances are physical local lengths in scene units, not angular
 increments or an assumed metre of projected grid. Absolute survey/grid samples
 use the measurement role below instead of this local-model interpretation.
 
-Heading/pitch/roll are a human-readable presentation of the quaternion, not
-three additional authored authorities. For the proposed presentation, model
-forward is ordered +N. Heading is clockwise from true north. Intrinsic heading,
-pitch and roll correspond, in Core row-vector form, to
-`R_N(roll) * R_E(pitch) * R_U(-heading)` with angles in degrees. A pure positive
-pitch raises forward; positive roll follows the right-hand rule about forward.
-The quaternion and its source-space slerp avoid an extra Euler interpolation
-contract. The common matrix convention is the one in USD Core.
+The single `crs:orientation` tuple is ordered heading, pitch, roll in degrees.
+Model forward is ordered +N. Heading is clockwise from true north; up is the
+source datum's ellipsoid normal. Intrinsic heading, pitch and roll correspond,
+in Core row-vector form, to
+`R_N(roll) * R_E(pitch) * R_U(-heading)`. A pure positive pitch raises forward;
+positive roll follows the right-hand rule about forward. A bearing measured
+from grid north must be converted to this declared reference when authoring;
+it is not silently read as a true-north heading. Asset unit/up-axis conformance
+remains separate under requirement 15.
+
+The tuple composes as one ordinary USD property. It is not three independently
+composed fields, and no second quaternion authority is authored. The common
+matrix convention is the one in USD Core. For sample evaluation, the equivalent
+unit quaternion is `q_U(-heading) * q_E(pitch) * q_N(roll)`, where a signed
+axis rotation of angle a has scalar `cos(a/2)` and imaginary vector
+`axis * sin(a/2)`, with angles converted to radians. This fixes the endpoint
+quaternion signs as well as the physical rotation.
 
 ### External measurement association
 
@@ -1819,9 +1839,9 @@ position and model-attitude inputs; computed placement results are runtime data.
 The source is a static RGF93 v2b realization. Both working and output contexts
 are Lambert-93 in metres with ellipsoidal height, so this example needs no
 working-to-output transport. Geometry is already conformed to stage metres and
-Z-up; height, attitude and adjustments are illustrative. The quaternion encoding
-remains proposed. This is not surveyed placement, an epoch or gravity-related
-height conversion, or a finite-extent affine certificate.
+Z-up; height, attitude and adjustments are illustrative. The heading/pitch/roll
+encoding remains proposed. This is not surveyed placement, an epoch or
+gravity-related height conversion, or a finite-extent affine certificate.
 
 Every panel uses the same camera and ground grid. Blue outlines show the
 previous state; height guides, model-front markers and translation arrows make
@@ -1842,8 +1862,8 @@ from true north, with zero pitch and roll, in local geodetic east/north/up.
 Here model +Y is chosen as front, not prescribed as a general convention.
 For this right-handed Z-up example, the attitude is a minus-30-degree turn about
 local +Up. It is a placement input, distinct from the later ordinary USD rotation
-about working-grid +Z. Heading/pitch/roll are an authoring presentation of the
-model attitude; this illustration does not decide the stored encoding.
+about working-grid +Z. The authored heading/pitch/roll tuple supplies this
+model attitude; its preferred encoding remains subject to author alignment.
 
 ##### 3. CRS placement and resolution
 
@@ -1910,10 +1930,33 @@ asset, inputs and reproduction record.
 #### Evaluation
 
 **Proposed complete evaluation contract for questions 3, 6, 9 and instances.**
-Read composed placement values under Core resolution. Position interpolates in
-its recorded CRS; quaternion orientation uses Core slerp when linear
-interpolation is selected. Held remains held. Interpolate before conversion;
-do not infer longitude unwrapping, a motion model or a coordinate epoch.
+Resolve placement opinions, defaults, blocks and sample times using
+[Core value resolution](https://github.com/aousd/specifications-public/blob/main/core/1.0.1/core_spec.md#value-resolution),
+including layer/reference time offsets and value clips. Position interpolates
+in its recorded CRS using Core. For orientation, select the applicable composed
+angle samples first, convert each selected tuple by the rotation convention
+above, then evaluate the physical orientation. Do not convert an already
+component-interpolated `double3`: ordinary Core tuple interpolation is not this
+geospatial orientation evaluation.
+
+At a default-time query, use the composed default or the schema fallback; do
+not substitute a time sample for a default. With no samples, use the resolved
+default. At an exact sample or outside the sampled interval, use that sample or
+the nearest endpoint respectively. Held interpolation uses the preceding
+sample, clamped to the first endpoint. Linear interpolation uses quaternion
+slerp between the bracketing samples with the normalized time fraction; select
+the equivalent endpoint sign giving a nonnegative quaternion dot product, and
+retain the defined signs if the dot product is exactly zero. Required samples
+that are blocked, unavailable, wrongly typed or non-finite cause visible
+failure, not an identity or held-value substitute.
+
+These samples specify physical poses and shortest-arc motion, not angle
+winding. A pair such as headings 0 and 360 degrees does not command a full
+revolution; intermediate poses must specify the intended longer turn.
+Conversion and interpolation produce transient results and write no USD
+property or normalized angle back into the source. Interpolate source position
+and physical orientation before CRS conversion; do not infer longitude
+unwrapping, a motion model or a coordinate epoch.
 
 For a model, let `F(x)` be the intrinsic finite point map defined by the
 placement position, stage-to-ENU mapping and geospatial attitude above. `x` is
