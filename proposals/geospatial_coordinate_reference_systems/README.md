@@ -183,10 +183,12 @@ factor is 0.999881 (−118.7 ppm): a kilometre on the ground is 999.881 m on
 the grid.
 
 **Direction.** **Grid convergence** is the angle between grid north — the
-northing axis of the projection — and true north. It is zero on the central
-meridian and grows away from it: about 31 arcmin at the same site, some 9 m
-over a kilometre. A bearing read off a national grid is a grid bearing, and
-when a scene says +Y is north it means grid north of the bound CRS.
+northing axis of the projection — and true north. At the same Lambert-93
+site it is about 31 arcmin, corresponding to some 9 m over a kilometre.
+A bearing read off a national grid is a grid bearing. This describes the
+projected CRS's axes; it does not assign north to a particular USD stage axis
+or redefine the model's geodetic attitude. Those mappings are specified under
+[geospatial model attitude and stage axes](#geospatial-model-attitude-and-stage-axes).
 
 Survey and construction work in ground coordinates, regional GIS in grid
 coordinates. A CRS states which of the two its numbers are and where its
