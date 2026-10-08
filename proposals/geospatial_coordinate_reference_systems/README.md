@@ -144,21 +144,54 @@ rendering pipeline, and standard tooling.
 
 This section provides context for readers unfamiliar with geospatial concepts.
 
-### Geographic vs. Projected CRS
+### Families of CRS
 
-A **Geographic CRS** uses angular coordinates
-(latitude and longitude in degrees)
-on a mathematical model of the Earth's shape (an ellipsoid).
-Example: WGS 84 (EPSG:4326) — the CRS used by GPS.
+ISO 19111:2019 (*Referencing by coordinates*) is the model behind every
+encoding used here: a CRS is a **coordinate system** — axes with directions
+and units — attached to a **datum** that fixes those axes to the Earth.
+OGC WKT 2 is its text serialization, and EPSG codes identify its well-known
+instances.
 
-A **Projected CRS** mathematically projects
-the curved Earth surface onto a flat 2D plane.
-Coordinates are linear (metres or feet).
-Example: UTM zone 11N (EPSG:32611) — used for Southern California.
+| Family | Coordinate system | Origin | Typical use | Example |
+|--------|-------------------|--------|-------------|---------|
+| **Geographic** | `CS[ellipsoidal]`, angular + height | Ellipsoid | GNSS output, web mapping, global exchange | WGS 84 (EPSG:4979) |
+| **Geocentric** | `CS[Cartesian, 3]`, linear | Earth's centre of mass | GNSS processing, datum transformation | ITRF2020 (EPSG:9988) |
+| **Projected** | `CS[Cartesian, 2]`, linear | Projection false origin | National mapping, GIS, civil engineering | UTM zone 11N (EPSG:32611) |
+| **Engineering** | `CS[Cartesian, 2\|3]`, linear | Arbitrary, stated by the datum | BIM and CAD authoring, plant layouts | Construction site grid |
 
-Every projected CRS contains a base geographic CRS,
-a projection method (e.g., Transverse Mercator, Lambert Conformal Conic),
-and projection parameters (central meridian, scale factor, false easting, etc.).
+A projected CRS always contains a base geographic CRS, a projection method
+(e.g., Transverse Mercator, Lambert Conformal Conic) and its parameters.
+An engineering CRS has no geodetic relationship of its own — architects
+author in one from the first day of a project — and acquires one only when
+something anchors it.
+
+A **derived CRS** is any of these obtained from another by a named
+conversion: a site calibration over a projected CRS, a topocentric plane
+over a geographic one. It is a complete CRS, not a transformation layered
+on one.
+
+#### Grid and ground coordinates
+
+A projection cannot flatten a curved surface without distorting it.
+
+**Distance.** The **grid scale factor** of the projection times the
+**elevation factor** — the survey is measured at the site's height, the
+projection computed on the ellipsoid — gives the **combined scale factor**.
+A **grid** coordinate carries that distortion; a **ground** coordinate
+matches a tape measure on site. Near Paris on Lambert-93 at 77.5 m the
+factor is 0.999881 (−118.7 ppm): a kilometre on the ground is 999.881 m on
+the grid.
+
+**Direction.** **Grid convergence** is the angle between grid north — the
+northing axis of the projection — and true north. It is zero on the central
+meridian and grows away from it: about 31 arcmin at the same site, some 9 m
+over a kilometre. A bearing read off a national grid is a grid bearing, and
+when a scene says +Y is north it means grid north of the bound CRS.
+
+Survey and construction work in ground coordinates, regional GIS in grid
+coordinates. A CRS states which of the two its numbers are and where its
+axes point, and both are properties of the site, not of any object placed
+in it.
 
 ### CRS encodings: OGC WKT, EPSG, and WKID
 
