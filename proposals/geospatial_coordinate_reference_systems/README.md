@@ -1,13 +1,14 @@
 # Geospatial Coordinate Reference Systems for OpenUSD
 
-**Review candidate.** The functional requirements are the proposed review
-baseline. The detailed model and runtime contract below form the follow-up
-candidate evaluated against them. Author feedback supports geographic source
+**Model/runtime review candidate.** The terms and functional requirements are
+the merged review baseline. The detailed model and runtime contract below are
+evaluated against them. Author feedback supports geographic source
 positions, input-only placement, the anchor/descendant transform distinction,
 site calibration through WKT and conservative dependency declarations.
-The preferred authored orientation is one heading/pitch/roll tuple, grounded
-in placement-authoring workflows; this and the remaining detailed conventions
-still need author alignment.
+The authored heading/pitch/roll tuple and the required ordinary USD bake with a
+double-precision origin now have author support. The detailed conventions,
+external associations, WKT string normalization and Profiles integration remain
+under review.
 Execution evidence distinguishes proposed meaning, author agreement,
 implementation defects and unverified coverage; it does not establish complete
 conformance.
@@ -1190,7 +1191,7 @@ The proposal remains subject to author review.
 | # | Question | Requirements and status |
 |--:|---|---|
 | 1 | May a model-placement position be recorded in a geographic CRS, or only in one with length axes? | 5, 8, 12, 17, 18, 19, 20, 22, 30; Decided: [geographic source positions](#decision-on-question-1-geographic-source-positions); encoding remains question 2 |
-| 2 | What field definitions and conventions record source position and physical model attitude, with computed projection effects kept out of the source schema? | 9, 10, 11, 12, 20; Input-only meaning agreed; preferred [position and heading/pitch/roll candidate](#crs-association-and-model-placement), including explicit orientation-sample evaluation, awaits alignment; no `crs:scale` |
+| 2 | What field definitions and conventions record source position and physical model attitude, with computed projection effects kept out of the source schema? | 9, 10, 11, 12, 20; Input-only meaning and authored heading/pitch/roll tuple supported in feedback; detailed [field and evaluation conventions](#crs-association-and-model-placement) remain under review; no `crs:scale` |
 | 3 | What coordinate context applies to project adjustments expressed as ordinary USD transforms when the consumer changes the requested output CRS? | 5, 6, 8, 9, 11, 15, 16, 19; Anchor project adjustments and descendant model-local transforms agreed; [complete chart, reset and instance contract](#evaluation) remains a review candidate |
 | 4 | Whose job is the up-axis and unit correction, the writer's or the reader's? | 14, 15; Decided: [writer or assembler](#decision-on-question-4-authored-unit-and-up-axis-conformance) |
 | 5 | Does the scene record where CRS coordinates give way to scene offsets, or does the binding determine it? | 11, 19, 27; Decided: [direct binding establishes the anchor](#decision-on-question-5-the-position-and-offset-boundary) |
@@ -1202,7 +1203,7 @@ The proposal remains subject to author review.
 | 11 | How are a measurement dataset's source coordinate properties associated with its CRS, separately from model-placement properties and ordinary geometry offsets? | 2, 5, 6, 7, 8, 12, 18, 19, 21, 27, 30; Proposed [external association and adjustment](#external-measurement-association), retaining native values; epochs remain question 15 |
 | 12 | What authored declaration exposes the composed scene's CRS dependency without traversal, including referenced or unloaded content and explicit export? | 7, 19, 25, 26, 27; Proposed [Profiles carrier and conservative maintenance](#dependency-declaration-with-profiles), including unloaded content and export |
 | 13 | How is placement-approximation error established for resolved frames, geometry and bounds, and how is cross-engine agreement measured for comparable operations? | 17, 18, 21, 22, 23, 24, 28, 29; Engine responsibility decided; proposed [extent and comparison rules](#extent-and-result-comparison) distinguish pointwise, polygonal and continuous guarantees |
-| 14 | How does a time-sampled export record its sampling so a reader can distinguish it from resolution of the original authored samples? | 18, 19, 20, 27, 30; Export preservation decided; proposed [Cartesian representation and existing sampling fields](#explicit-export-and-sampling) |
+| 14 | How does a time-sampled export record its sampling so a reader can distinguish it from resolution of the original authored samples? | 18, 19, 20, 27, 30; Ordinary USD bake with a double-precision origin supported in feedback; detailed [representation and sampling guarantees](#explicit-export-and-sampling) remain under review |
 | 15 | How should a future extension represent and associate coordinate epochs, and what must it specify for epoch-dependent resolution? | 2, 3, 5, 7, 19, 21, 27, 28, 30; Roadmap: [coordinate epochs](#roadmap-question-15-coordinate-epochs), outside the initial scope |
 
 The table separates recorded direction from complete proposed definitions.
@@ -1231,14 +1232,14 @@ are runtime results, not additional source properties; no `crs:scale` is propose
 Intentional object scaling uses ordinary USD xformOps. This input-only meaning
 has author support.
 
-The preferred candidate stores one heading/pitch/roll tuple. A placement author
+The source representation stores one heading/pitch/roll tuple. A placement author
 can enter, inspect and correct the same physical angles supplied by a survey or
 orientation measurement, with their north/up references stated. This addresses
-the workflow under requirement 9 directly. Tam's alternative stores a quaternion
-and requires a normative heading/pitch/roll presentation; it remains a valid
-comparison, but Core interpolation convenience alone does not choose the source
-representation. The authored-angle candidate and its evaluation below are
-proposed for author alignment, not recorded as unanimous agreement.
+the workflow under requirement 9 directly. Author feedback supports this
+representation and converting selected composed angle samples to poses before
+interpolation. The detailed physical conventions and sample-evaluation rules
+below remain part of the model/runtime review. The equivalent quaternion is
+computed, not a second authored source property.
 
 #### Decision on question 5: the position and offset boundary
 
@@ -1381,6 +1382,13 @@ from the CRS *usage*,
 allowing a single CRS definition to be shared
 across many prims and scenes via USD references.
 
+Property types, variability and fallbacks in the following tables are
+conformance constraints. Uniform properties use their composed default values;
+an active time-sampled value source is invalid even if a default also exists.
+Validation must report it and resolution must reject the affected association,
+rather than ignoring the samples or varying the CRS or dataset selection.
+Weaker value sources masked by Core composition do not affect this check.
+
 ### CRS library pattern
 
 CRS definitions are intended to live in shared **library layers**
@@ -1388,10 +1396,10 @@ CRS definitions are intended to live in shared **library layers**
 
 ```
 crs_library.usda
-├── /CRS/WGS84_UTM11N       (GeospatialCRS)
-├── /CRS/NAD83_UTM11N        (GeospatialCRS)
-├── /CRS/NAD83_CA_Zone5      (GeospatialCRS)
-└── /CRS/WGS84_Geographic3D  (GeospatialCRS)
+├── /CRS/WGS84_UTM11N       (CoordinateReferenceSystem)
+├── /CRS/NAD83_UTM11N        (CoordinateReferenceSystem)
+├── /CRS/NAD83_CA_Zone5      (CoordinateReferenceSystem)
+└── /CRS/WGS84_Geographic3D  (CoordinateReferenceSystem)
 ```
 
 This pattern is analogous to shared material libraries in M&E workflows.
@@ -1588,8 +1596,11 @@ position in the datum's 3D geographic CRS first; a required vertical conversion
 must succeed. Deflection of the vertical is outside this ellipsoid-normal model.
 The existing [geocentric/topocentric construction](https://proj.org/en/stable/operations/conversions/topocentric.html)
 defines its origin and basis. At a geographic pole the recorded longitude
-selects the reference meridian for the ENU basis. An unavailable geodetic
-position or normal is an error, not a substitute basis.
+selects the reference meridian for the ENU basis. If the source position does
+not determine that meridian, as with geocentric X = Y = 0, model attitude is
+unsupported; an engine's arbitrary converted longitude must not supply it.
+Coordinate-only conversion of that position does not require model attitude.
+An unavailable geodetic position or basis is an error, not a substitute basis.
 
 Map a conformed stage vector to ordered model ENU as follows, multiplying by
 `metersPerUnit` to obtain metres:
@@ -1840,7 +1851,7 @@ The source is a static RGF93 v2b realization. Both working and output contexts
 are Lambert-93 in metres with ellipsoidal height, so this example needs no
 working-to-output transport. Geometry is already conformed to stage metres and
 Z-up; height, attitude and adjustments are illustrative. The heading/pitch/roll
-encoding remains proposed. This is not surveyed placement, an epoch or
+conventions remain under review. This is not surveyed placement, an epoch or
 gravity-related height conversion, or a finite-extent affine certificate.
 
 Every panel uses the same camera and ground grid. Blue outlines show the
@@ -1863,7 +1874,7 @@ Here model +Y is chosen as front, not prescribed as a general convention.
 For this right-handed Z-up example, the attitude is a minus-30-degree turn about
 local +Up. It is a placement input, distinct from the later ordinary USD rotation
 about working-grid +Z. The authored heading/pitch/roll tuple supplies this
-model attitude; its preferred encoding remains subject to author alignment.
+model attitude; the physical and evaluation conventions are defined below.
 
 ##### 3. CRS placement and resolution
 
@@ -2238,7 +2249,11 @@ CRS bindings compose through standard USD composition arcs:
 - **Sublayers:** CRS libraries can be included as sublayers.
 - **Inherits:** CRS class prims can be inherited
   (as demonstrated in the POC implementations).
-- **Payloads:** CRS bindings survive payload loading/unloading.
+- **Payloads:** bindings authored inside a payload participate only while that
+  payload is loaded, under [Core payload composition](https://github.com/aousd/specifications-public/blob/main/core/1.0.1/core_spec.md#payloads).
+  A binding authored outside the payload remains available. The
+  [dependency summary](#dependency-declaration-with-profiles) must remain outside
+  payloads; unloading content does not discharge its declared dependency.
 
 The standard USD composition order (LIVRPS) applies;
 a stronger arc can override a weaker arc's CRS binding.
@@ -2276,7 +2291,7 @@ All this data arrives in various CRS —
 the platform must reproject everything into a common frame.
 
 This proposal provides the standard mechanism
-for each USD layer to declare its CRS,
+for composed subtrees to declare their CRS,
 enabling the digital twin platform to compose and reproject
 automatically rather than relying on manual coordinate transformations.
 
@@ -2458,14 +2473,14 @@ reopen settled coordinate behavior.
 2. **Third-party dependency.**
    Correct reprojection requires PROJ or an equivalent library.
    If no CRS library is available, the runtime cannot reproject.
-   Mitigation: graceful degradation — CRS metadata is preserved
-   even without a reprojection engine.
+   Mitigation: preserve source data and report unavailable resolution visibly.
+   An explicit ordinary USD bake can serve consumers without a reprojection engine.
 
 3. **Performance.**
    Per-prim reprojection at render time
    could be expensive for large scenes.
-   Mitigation: implement caching, pre-transform at export,
-   and batch reprojection in the Scene Index Filter.
+   Mitigation: cache and batch queries or explicitly bake derived geometry,
+   preserving the specified results and source data across consumer architectures.
 
 4. **Adoption resistance.**
    M&E users who do not need geospatial features
@@ -2507,9 +2522,10 @@ not establish conformance to the current candidate or group adoption:
 
 ## Next alignment
 
-Merge the terms and functional requirements as the baseline. Review the
-authored model and normative runtime contract against it in the follow-up,
-including orientation storage and the remaining detailed conventions. Selected
+The terms and functional requirements are merged. Review the authored model and
+normative runtime contract against that baseline, including the detailed
+placement conventions, WKT string normalization, external associations,
+Profiles maintenance, scene charts and sampling guarantees. Selected
 build-loop demonstrations and explicit counterexamples inform that review;
 prototype successes and failures remain separate from agreement.
 
