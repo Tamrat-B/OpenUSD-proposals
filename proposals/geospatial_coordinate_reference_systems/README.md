@@ -319,9 +319,10 @@ Key benefits:
 
 ### WKT examples
 
-The two examples here illustrate the case study's WKT approach. Their
-south-oriented axes are outside the initial supported component profile;
-they are background illustrations, not initial conformance fixtures.
+The examples distinguish a local tangent-plane CRS from a calibrated survey
+grid. Their coordinate axes describe the CRS independently of USD stage axes.
+The build checks grammar and the stated axis/unit meaning; successful parsing
+alone does not prove that an engine can perform every requested operation.
 Reference encodings of common CRS types are in
 [Appendix A](#appendix-a-wkt-examples).
 These examples are formatted for readability. Conforming authored tokens use
@@ -334,7 +335,7 @@ The following WKT string expresses, as a shared coordinate system, the
 georeference that the `WGS84ReferencePositionAPI`
 [case study](#case-study-for-the-wgs-84-approach) carries as a scene-level
 position. It defines a 3D local coordinate system centered at the Eiffel Tower
-with a Y-Up orientation. A model's separate CRS placement attributes locate it
+with east, north and up axes. A model's separate CRS placement attributes locate it
 within that system; ordinary USD transforms apply after CRS placement and
 resolution under the [decision on question 2](#decision-on-question-2-crs-placement-attributes).
 The CRS definition and model placement retain their distinct roles under
@@ -344,7 +345,7 @@ under [position components](#position-components). See
 [Stage metadata](#stage-metadata-metersperunit-and-upaxis).
 
 ```lisp
-GEODCRS["Y-Up Local Tangent Plane at Eiffel Tower",
+GEODCRS["Local Tangent Plane at Eiffel Tower",
     BASEGEOGCRS["WGS 84",
         DATUM["World Geodetic System 1984",
             ELLIPSOID["WGS 84", 6378137, 298.257223563, LENGTHUNIT["metre", 1]],
@@ -359,67 +360,76 @@ GEODCRS["Y-Up Local Tangent Plane at Eiffel Tower",
         PARAMETER["Ellipsoidal height of topocentric origin", 33.0,
             LENGTHUNIT["metre", 1.0], ID["EPSG", 8836]]],
     CS[Cartesian, 3],
-    AXIS["X", east], AXIS["Y", up], AXIS["Z", south],
+    AXIS["east (E)", east], AXIS["north (N)", north], AXIS["up (U)", up],
     LENGTHUNIT["metre", 1]]
 ```
 
 #### Derived CRS with affine site calibration
 
-For projects requiring high accuracy, we can compute the transformation between the National CRS (e.g., Lambert-93 + IGN69) and the USD local CRS using least squares. This transformation—which can include affine transformations (EPSG 9624) and vertical adjustment planes to account for localized vertical deviations—can be encoded directly into the WKT string.
+This supplied Westminster survey example defines site easting, northing and
+height in US survey feet. Its horizontal affine calibration (EPSG 9624) derives
+from NAD83(2011) / Colorado Central; its vertical offset and slope (EPSG 1046)
+derive from NAVD88 height. The vertical operation includes the evaluation point
+and the horizontal CRS identifying its latitude and longitude. These are CRS
+facts, not USD scene axes, object placement or computed projection properties.
+The writer handles stage units and up direction separately under requirement 15.
 
 ```lisp
-COMPOUNDCRS["Site Local Coordinate System (X East, Y Up, Z South)",
-    DERIVEDPROJCRS["Site Local Horizontal (Derived from ETRS89-FRA/Lambert-93)",
-        BASEPROJCRS["ETRS89-FRA [RGF93 v2b] / Lambert-93",
-            BASEGEOGCRS["ETRS89-FRA [RGF93 v2b]",
-                DATUM["ETRS89-FRA [RGF93 v2b]",
-                    ELLIPSOID["GRS 1980", 6378137, 298.257222101,
-                        LENGTHUNIT["metre", 1]]],
-                ID["EPSG", 9782]],
-            CONVERSION["Lambert-93",
-                METHOD["Lambert Conic Conformal (2SP)", ID["EPSG", 9802]],
-                PARAMETER["Latitude of false origin", 46.5,
-                    ANGLEUNIT["degree", 0.0174532925199433], ID["EPSG", 8821]],
-                PARAMETER["Longitude of false origin", 3,
-                    ANGLEUNIT["degree", 0.0174532925199433], ID["EPSG", 8822]],
-                PARAMETER["Latitude of 1st standard parallel", 44,
-                    ANGLEUNIT["degree", 0.0174532925199433], ID["EPSG", 8823]],
-                PARAMETER["Latitude of 2nd standard parallel", 49,
-                    ANGLEUNIT["degree", 0.0174532925199433], ID["EPSG", 8824]],
-                PARAMETER["Easting at false origin", 700000,
-                    LENGTHUNIT["metre", 1.0], ID["EPSG", 8826]],
-                PARAMETER["Northing at false origin", 6600000,
-                    LENGTHUNIT["metre", 1.0], ID["EPSG", 8827]]],
-            ID["EPSG", 9794]],
-        DERIVINGCONVERSION["Site Calibration Horizontal Affine",
-            METHOD["Affine parametric transformation", ID["EPSG", 9624]],
-            PARAMETER["A0", 10.0, LENGTHUNIT["metre", 1.0], ID["EPSG", 8623]],
-            PARAMETER["A1", 1.00005, SCALEUNIT["unity", 1.0], ID["EPSG", 8624]],
-            PARAMETER["A2", 0.00001, SCALEUNIT["unity", 1.0], ID["EPSG", 8625]],
-            PARAMETER["B0", 5.0, LENGTHUNIT["metre", 1.0], ID["EPSG", 8639]],
-            PARAMETER["B1", -0.00001, SCALEUNIT["unity", 1.0], ID["EPSG", 8640]],
-            PARAMETER["B2", 1.00005, SCALEUNIT["unity", 1.0], ID["EPSG", 8641]]],
-        CS[Cartesian, 2],
-        AXIS["X", east, ORDER[1]],
-        AXIS["Z", south, ORDER[2]],
-        LENGTHUNIT["metre", 1.0]],
-    VERTCRS["Site Local Vertical (Inclined Plane)",
-        BASEVERTCRS["NGF-IGN69 height",
-            VDATUM["Nivellement General de la France - IGN69",
-                ID["EPSG", 5119]],
-            ID["EPSG", 5720]],
-        DERIVINGCONVERSION["Inclined Plane Vertical Adjustment",
-            METHOD["Vertical Offset and Slope", ID["EPSG", 1046]],
-            PARAMETER["Vertical Offset", 1.5,
-                LENGTHUNIT["metre", 1.0], ID["EPSG", 8603]],
-            PARAMETER["Inclination in latitude", 0.00001,
-                ANGLEUNIT["radian", 1.0], ID["EPSG", 8730]],
-            PARAMETER["Inclination in longitude", 0.00001,
-                ANGLEUNIT["radian", 1.0], ID["EPSG", 8731]]],
-        CS[vertical, 1],
-        AXIS["Y", up, ORDER[1]],
-        LENGTHUNIT["metre", 1.0]]
-]
+COMPOUNDCRS["Westminster site grid + site height",
+    DERIVEDPROJCRS["Westminster site grid",
+        BASEPROJCRS["NAD83(2011) / Colorado Central (ftUS)",
+            BASEGEOGCRS["NAD83(2011)",
+                DATUM["NAD83 (National Spatial Reference System 2011)",
+                    ELLIPSOID["GRS 1980",6378137,298.257222101,LENGTHUNIT["metre",1]],
+                    ID["EPSG",1116]],
+                PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],
+                ID["EPSG",6318]],
+            CONVERSION["SPCS83 Colorado Central zone (US survey foot)",
+                METHOD["Lambert Conic Conformal (2SP)",ID["EPSG",9802]],
+                PARAMETER["Latitude of false origin",37.8333333333333,
+                    ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8821]],
+                PARAMETER["Longitude of false origin",-105.5,
+                    ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8822]],
+                PARAMETER["Latitude of 1st standard parallel",39.75,
+                    ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8823]],
+                PARAMETER["Latitude of 2nd standard parallel",38.45,
+                    ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8824]],
+                PARAMETER["Easting at false origin",3000000,
+                    LENGTHUNIT["US survey foot",0.304800609601219],ID["EPSG",8826]],
+                PARAMETER["Northing at false origin",1000000,
+                    LENGTHUNIT["US survey foot",0.304800609601219],ID["EPSG",8827]],
+                ID["EPSG",15314]],
+            ID["EPSG",6428]],
+        DERIVINGCONVERSION["Westminster site calibration (horizontal)",
+            METHOD["Affine parametric transformation",ID["EPSG",9624]],
+            PARAMETER["A0",503.9253920478007,LENGTHUNIT["US survey foot",0.304800609601219],ID["EPSG",8623]],
+            PARAMETER["A1",1.000231041946945,SCALEUNIT["coefficient",1],ID["EPSG",8624]],
+            PARAMETER["A2",-0.00020126312919239097,SCALEUNIT["coefficient",1],ID["EPSG",8625]],
+            PARAMETER["B0",-546977.9701600745,LENGTHUNIT["US survey foot",0.304800609601219],ID["EPSG",8639]],
+            PARAMETER["B1",0.00020126312919239097,SCALEUNIT["coefficient",1],ID["EPSG",8640]],
+            PARAMETER["B2",1.000231041946945,SCALEUNIT["coefficient",1],ID["EPSG",8641]]],
+        CS[Cartesian,2],
+            AXIS["site easting (E)",east,ORDER[1],LENGTHUNIT["US survey foot",0.304800609601219]],
+            AXIS["site northing (N)",north,ORDER[2],LENGTHUNIT["US survey foot",0.304800609601219]]],
+    VERTCRS["Westminster site height",
+        BASEVERTCRS["NAVD88 height (ftUS)",
+            VDATUM["North American Vertical Datum 1988",ID["EPSG",5103]],
+            ID["EPSG",6360]],
+        DERIVINGCONVERSION["Westminster site calibration (vertical)",
+            METHOD["Vertical Offset and Slope",ID["EPSG",1046]],
+            PARAMETER["Ordinate 1 of evaluation point",39.89815166091368,
+                ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8617]],
+            PARAMETER["Ordinate 2 of evaluation point",-105.11508529887352,
+                ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8618]],
+            PARAMETER["Vertical Offset",1.7355492174519394,
+                LENGTHUNIT["US survey foot",0.304800609601219],ID["EPSG",8603]],
+            PARAMETER["Inclination in latitude",-18.196450752028323,
+                ANGLEUNIT["arc-second",4.84813681109536E-06],ID["EPSG",8730]],
+            PARAMETER["Inclination in longitude",-11.949966705964858,
+                ANGLEUNIT["arc-second",4.84813681109536E-06],ID["EPSG",8731]],
+            PARAMETER["EPSG code for Horizontal CRS",6318,ID["EPSG",1037]]],
+        CS[vertical,1],
+            AXIS["site height (H)",up,LENGTHUNIT["US survey foot",0.304800609601219]]]]
 ```
 
 ## Terms
@@ -726,7 +736,7 @@ are distinct steps.
 <!-- Start a separate list so the new identifier renders as 31. -->
 
 31. **Same definition, same meaning.**
-    CRS definitions use the proposal's prescribed WKT string normal form, whose
+    Writers author CRS definitions in the prescribed WKT string normal form, whose
     specified lexical variants normalize to identical text without loss of
     represented information or changed coordinate interpretation, while
     comparisons distinguish serialized-definition identity from CRS equivalence
@@ -738,7 +748,8 @@ are distinct steps.
     These differences need not imply different coordinate definitions.
     A prescribed normal form makes identical serialized definitions comparable,
     while requiring valid WKT from other tools to be normalized before conforming
-    authoring. That is an additional interchange constraint, not a restriction OGC
+    authoring. Readers warn on non-normal spelling without rejecting an otherwise
+    supported valid definition. That is an additional authoring constraint, not a restriction OGC
     already imposes. The proposed profile is under review in question 10.
     Changing an axis order, unit or datum can change the meaning;
     normalization cannot erase those differences, or discard names and remarks
@@ -1517,6 +1528,10 @@ and approximation contract in question 13; this does not impose a universal
 
 ### GeospatialCRS typed schema
 
+**Writer.** Authors define and share one complete CRS WKT value.
+
+**Reader.** Consumers use the composed definition as the coordinate authority.
+
 A concrete typed schema that defines a CRS as a first-class USD prim.
 
 **Prim type name:** `CoordinateReferenceSystem`
@@ -1580,6 +1595,10 @@ def CoordinateReferenceSystem "WGS84_UTM11N" (
 ```
 
 ### CRS association and model placement
+
+**Writer.** Authors bind a model and supply its absolute position and physical attitude.
+
+**Reader.** Consumers compute placement from those inputs, retaining ordinary USD adjustments.
 
 **Proposed definitions for questions 2 and 6.** These properties contain inputs
 only. Resolved positions, orientation, convergence, scale, distortion and bounds
@@ -1688,6 +1707,10 @@ quaternion signs as well as the physical rotation.
 
 ### External measurement association
 
+**Writer.** Authors identify the native asset, selected field and coordinate domain.
+
+**Reader.** Consumers keep values, coordinates and observation times paired using native declarations.
+
 **Proposed carrier for question 11.** Add a concrete typed
 `GeospatialDataSource` derived from `UsdGeomXformable`, with a direct
 `GeospatialCRSBindingAPI`. Its type identifies absolute external coordinates;
@@ -1748,6 +1771,10 @@ same adjusted locations; adding a model anchor again would double-place them.
 
 ### Dependency declaration with Profiles
 
+**Writer.** Publishers maintain conservative coverage declarations outside payloads.
+
+**Reader.** Consumers read those declarations without loading or traversing the content.
+
 **Agreed declaration semantics for question 12; identities remain proposed.** Use the existing
 [Profiles claims and profile-conformance carrier](https://openusd.org/release/user_guides/schemas/UsdProfiles/overview.html).
 Propose capability `usd.geospatial.crsResolution.v1`, dependent on `usd`, and
@@ -1802,92 +1829,72 @@ not a new geospatial attribute or a scene traversal requirement for the reader.
 
 ### WKT string normalization
 
-**Proposed authoring profile, under review in question 10.** This section
-specifies WKT text handling; coordinate resolution and CRS equivalence are
-distinct operations.
+**Proposed writing and reading contract for question 10.** Writers author
+`crs:wkt` in normal form. Readers accept valid WKT2 in the supported coordinate
+profile even when its text is not normalized. A non-normal value raises a
+validation warning, never a resolution failure solely for its spelling, and
+resolution never rewrites the source layer.
 
 #### Scope and source of the profile
 
-Retain `uniform token crs:wkt`. Prescribe a **lossless lexical normal form** for
-complete CRS WKT, using the grammar and preferred spellings in
-[OGC 18-010r11 / ISO 19162, clauses 6–7 and Annex B](https://docs.ogc.org/is/18-010r11/18-010r11.pdf).
-That document permits multiple spellings and recommends writer conventions;
-it does not prescribe a unique canonical CRS identity string.
+Retain `uniform token crs:wkt`. Use the grammar and preferred spellings in
+[OGC 18-010r11 / ISO 19162:2019, clauses 6–7 and Annex B](https://docs.ogc.org/is/18-010r11/18-010r11.pdf).
+OGC permits spelling variants and recommends writer conventions; it does not
+prescribe a unique CRS identity string. This lossless lexical normal form is a
+proposed USD authoring profile of those conventions, not a CRS equivalence
+algorithm or a requirement to use a particular library.
 
-This is a proposed USD authoring profile of those conventions. It does not
-establish a new geospatial equivalence algorithm or require a particular engine.
+**Writers** use the following normal form (requirement 31):
 
-1. Emit preferred WKT keywords in uppercase and enumerations in their prescribed
-   spelling; emit square brackets and no padding outside quoted text.
-2. Preserve quoted content exactly, including names, remarks, case and internal
-   whitespace. Use the WKT escaping rules. Preserve all represented nodes and
-   their meaningful order; do not drop identifiers, units, axis declarations,
-   datum metadata, usage metadata or reference-frame epochs.
-3. Preserve numeric values exactly. For productions requiring integers, use
-   [W3C canonical integer spelling](https://www.w3.org/TR/xmlschema-2/#integer-canonical-representation).
-   For real-valued productions, expand any finite decimal exponent exactly and
-   use [W3C canonical decimal spelling](https://www.w3.org/TR/xmlschema-2/#decimal-canonical-representation).
-   Do not round through binary floating point. This numeric convention is an
-   explicit proposed profile choice, not an OGC or PROJ requirement.
-4. Preserve the declared coordinate interpretation. An authority lookup must
-   not replace the supplied definition. Axis reordering, unit conversion and
-   the resolution of a CRS are not WKT string normalization.
+1. Valid WKT2 on one line, with no whitespace outside quoted text, preferred
+   uppercase keywords, prescribed enumeration spelling and square brackets.
+2. Numbers in plain decimal: no exponent, leading `+` or superfluous zeros.
+   Thus `6378137.0` becomes `6378137`, `1E0` becomes `1`, `0.50` becomes `0.5`,
+   and signed zero becomes `0`. Expand decimal exponents and rewrite the text
+   exactly, never by rounding through binary floating point. Grammar still
+   determines which numeric values are valid in each production.
+3. Preserve everything else as supplied: quoted content, including escaped
+   quotes, case and whitespace; every node and its meaningful order;
+   identifiers, units, axes, datum metadata, usage and reference-frame epochs.
 
-Examples of the numeric convention: real-valued `1`, `1.0` and `1E0` emit `1.0`;
-integer-valued `ORDER[1]` remains `ORDER[1]`. An ellipsoid value
-`6378137.12345678912345` keeps that exact value. Unsupported syntax must be
-reported rather than silently discarded by the normalizer.
+A conforming authored token is a fixed point of this normal form. Any parser,
+tokenizer or writer may be used if its output satisfies these preservation and
+spelling rules. An engine's valid WKT export is not automatically lossless.
+The plain-decimal convention is an explicit proposed profile choice, not an OGC
+or PROJ requirement. Pretty-printed examples in this document are readable
+source representations, not pre-normalized authored tokens.
 
-The proposal can reference these established lexical rules without prescribing
-a novel transformation algorithm. An implementation can use an existing WKT
-parser/tokenizer and exact-decimal library; conformance depends on the specified
-output and preservation, not the library name.
+**Readers** validate grammar and report non-normal spelling as a warning.
+Invalid WKT or a coordinate interpretation the supported profile cannot honor
+still fails visibly. Accepting non-normal text does not authorize discarding an
+embedded operation or substituting the base CRS. Coordinate-epoch wrappers
+remain outside the initial profile.
 
 #### What token comparison establishes
 
-Equal normalized tokens establish identity of the preserved serialized
-definition. Unequal tokens establish only that those serialized definitions
-differ. They must not, by themselves, establish that the CRSs differ in
-coordinate meaning.
+Equal normalized text establishes identity of the preserved serialized
+definition. Different text establishes only that the serialized definitions
+differ. It does not prove different coordinate meaning or a required conversion.
+Names, remarks and permitted structural alternatives remain represented and
+can differ even when the engine establishes equivalent coordinate meaning.
 
-For example, changing a CRS display name leaves different authored information
-that normalization must retain, while an established geospatial engine can
-still recognize equivalent coordinate meaning. Structural alternatives, such
-as permitted parameter-order differences, also require semantic comparison
-unless a further structural normal form is prescribed.
-
-Use established engine comparison for that distinct question. PROJ's
+Use established engine comparison for that separate question. PROJ's
 [comparison criteria](https://proj.org/en/stable/development/reference/cpp/util.html)
-are prior art: equivalence need not require identical names and identifiers.
-Report the comparison criterion, retain coordinate-axis/unit interpretation,
-and do not use the criterion that disregards geographic axis order as an
-unqualified placement equality test. An engine's tolerance-based comparison
-does not certify lossless WKT normalization or authorize dropping an operation.
-If equivalence cannot be established, report it as unestablished rather than
-claiming that a text difference proves different CRS meaning.
+are prior art. Report the criterion, preserve axis/unit interpretation, and do
+not use comparison that ignores geographic axis order as an unqualified
+placement equality test. If equivalence cannot be established, report it as
+unestablished. Equal text or engine equivalence never authorizes skipping
+placement, project adjustment or a required operation.
 
-Even identical WKT does not authorize omitting required placement, project
-adjustment, resource-dependent processing or any future epoch-dependent work.
-
-A conforming authored `crs:wkt` token must be a fixed point of this profile:
-normalizing it produces the same token. Validation checks both grammar validity
-and that equality. Importers may normalize valid external WKT before conforming
-authoring; resolution does not rewrite source layers. A simplified WKT export,
-database replacement or visualization-axis rewrite is not this normalizer.
-
-CRS-only authority does not authorize silently discarding an authored conversion
-or transformation embedded in an otherwise valid WKT form. The site-grid
-conversion is part of its CRS meaning. A form whose interpretation cannot be
-honored in the supported profile must be reported as unsupported, rather than
-replaced with an embedded base CRS. Coordinate-epoch wrappers remain outside
-the initial profile.
-
-An engine writer may be used only if it satisfies the prescribed preservation
-and output rules. Its output must not be assumed lossless merely because it is
-valid WKT or the parsed objects compare equivalent. Numeric values and metadata
-must survive independently of tolerance-based CRS comparison.
+Axis reordering, unit conversion, authority-database replacement and dropping
+the conversion of a derived CRS such as a site calibration are not WKT string
+normalization. Resolution and normalization do not write source layers.
 
 ## Runtime coordinate transformation
+
+**Writer.** Authors provide the source CRS and placement or measurement inputs.
+
+**Reader.** Consumers evaluate the declared order and return results in the requested output context.
 
 The functional requirements and recorded decisions specify observable behavior,
 including resolved coordinate queries and scene placement. They do not require
@@ -2182,6 +2189,10 @@ extent/error contract, rather than treating their controls as the whole surface.
 
 ### Observable outcomes and failures
 
+**Writer.** Authors preserve the input facts and correct invalid authored associations.
+
+**Reader.** Consumers return the requested result with its context, or report the specified failure.
+
 Resolution leaves source layers unchanged. Unsupported requests, broken bindings
 and failed or incomplete operations fail visibly. A batch may report individual
 failures, but cannot return an unchanged failed coordinate as a successful
@@ -2195,6 +2206,10 @@ stored computed geospatial properties on the source. That export's once-only
 placement and fresh-reader obligations are specified below.
 
 ### Extent and result comparison
+
+**Writer.** Authors and requesting clients state the extent and required physical tolerance.
+
+**Reader.** Consumers report supported accuracy and compare results in a meaningful physical metric.
 
 **Proposed clarification of question 13.** These are observable result
 obligations; they prescribe neither callable interfaces nor an engine's
@@ -2252,6 +2267,10 @@ case, not guessed after seeing the results or stored in an undocumented scene
 attribute.
 
 ### Explicit export and sampling
+
+**Writer.** Publishers explicitly bake a derived copy and declare its sampling and coverage.
+
+**Reader.** Ordinary USD consumers use the baked geometry and transforms without resolving source placement again.
 
 **Proposed clarification of question 14 using existing USD fields.** A resolved
 export is a new authored dataset in its recorded output CRS. Baking resolved
@@ -2777,22 +2796,24 @@ COORDINATEMETADATA[
 
 ### 3D Geocentric (ECEF) with dynamic datum
 
+This is the CRS portion of the supplied ITRF2020 template (EPSG:9988).
+`FRAMEEPOCH[2015]` describes the datum's reference frame; it is not a coordinate
+epoch. The supplied `COORDINATEMETADATA` wrapper's coordinate epoch 2026.5 is
+roadmap material under question 15, not an initial-scope authored field.
+Requests needing an epoch-dependent transformation remain unsupported.
+
 ```lisp
 GEODCRS["ITRF2020",
-    DYNAMIC[FRAMEEPOCH[2015]],
-    DATUM["International Terrestrial Reference Frame 2020",
-        ELLIPSOID["GRS 1980",6378137,298.257222101,
-            LENGTHUNIT["metre",1.0]]],
-    PRIMEMERIDIAN["Greenwich",0,
-        ANGLEUNIT["degree",0.0174532925199433]],
-    CS[Cartesian,3],
-        AXIS["(X)",geocentricX,ORDER[1],
-            LENGTHUNIT["metre",1.0]],
-        AXIS["(Y)",geocentricY,ORDER[2],
-            LENGTHUNIT["metre",1.0]],
-        AXIS["(Z)",geocentricZ,ORDER[3],
-            LENGTHUNIT["metre",1.0]],
-    ID["EPSG",9990]]
+        DYNAMIC[FRAMEEPOCH[2015]],
+        DATUM["International Terrestrial Reference Frame 2020",
+            ELLIPSOID["GRS 1980",6378137,298.257222101,LENGTHUNIT["metre",1]],
+            ID["EPSG",1322]],
+        PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],
+        CS[Cartesian,3],
+            AXIS["(X)",geocentricX,ORDER[1],LENGTHUNIT["metre",1]],
+            AXIS["(Y)",geocentricY,ORDER[2],LENGTHUNIT["metre",1]],
+            AXIS["(Z)",geocentricZ,ORDER[3],LENGTHUNIT["metre",1]],
+        ID["EPSG",9988]]
 ```
 
 ## Appendix B: AI-assisted drafting
