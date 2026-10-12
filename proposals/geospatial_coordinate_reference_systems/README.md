@@ -216,25 +216,52 @@ with EPSG authority identifiers embedded within the WKT via `ID["EPSG", code]`.
 
 ### 3D CRS types
 
-A complete CRS used for 3D model placement must define all three coordinate
-components, including the height reference. The following types illustrate
-that scope; support also requires the component and placement-basis conventions
-specified in the detailed design:
+A CRS used for 3D model placement must give three coordinate components and a
+computable link to a geodetic datum, so that every position it records can be
+converted to a geodetic one. How the third component is defined depends on the
+type: an axis of the geocentric frame, an ellipsoidal height, or a height in a
+declared vertical CRS. A 2D CRS does not qualify on its own, nor does a local
+grid tied to the Earth only by text. Support also requires the component and
+placement-basis conventions specified in the [detailed design](#detailed-design).
 
-| Type | WKT Keyword | Axes | Example |
-|------|-------------|------|---------|
-| 3D Projected | `COMPOUNDCRS` (PROJCRS + VERTCRS) | Easting, Northing, Up | NAD83 / UTM 11N + NAVD88 height |
-| 3D Geographic | `GEOGCRS` with 3 axes | Lat, Lon, Height | WGS 84 (EPSG:4979) |
-| 3D Geocentric (ECEF) | `GEODCRS` | X, Y, Z | ITRF2020 |
-| 3D Engineering | `DERIVEDPROJCRS` | Site X, Y, Z | Construction project grid |
+The types below run from global to local.
+
+| Type | WKT 2 | Components | Third component | Link to the geodetic datum | Coordinate space |
+|------|-------|------------|-----------------|----------------------------|-------------------|
+| **Geocentric (ECEF)** | `GEODCRS`, `CS[Cartesian, 3]` | X, Y, Z | Cartesian axis; no height | Direct | GLOBE |
+| **Geographic 3D** | `GEOGCRS`, `CS[ellipsoidal, 3]` | longitude, latitude, height | Ellipsoidal height | Direct | — (angular) |
+| **Geographic compound** | `COMPOUNDCRS` (`GEOGCRS` 2D + `VERTCRS`) | longitude, latitude, height | Gravity-related height | Direct; ellipsoidal height through the vertical datum's geoid model | — (angular) |
+| **Projected compound** | `COMPOUNDCRS` (`PROJCRS` + `VERTCRS`) | easting, northing, height | Gravity-related height | Map projection of the base geographic CRS | GRID |
+| **Topocentric** | Derived from a `BASEGEOGCRS`, EPSG 9837 | east, north, up | Up along the ellipsoid normal at the origin | Tangent plane at a stated latitude, longitude and height | GROUND |
+| **Local site, calibrated** | `DERIVEDPROJCRS`, EPSG 9624 (+ EPSG 1046 vertical) | site X, Y, Z | Calibrated height | Affine fit over a projected compound CRS | GROUND |
+| **Local site, engineering only** | `ENGCRS` with `EDATUM[ANCHOR[...]]` | site X, Y, Z | Arbitrary | Free text only: **not computable** | GROUND |
+
+**GLOBE** describes lengths in a single Cartesian frame for the whole Earth,
+**GRID** lengths in a map projection, and **GROUND** lengths measured on site
+(see [grid and ground coordinates](#grid-and-ground-coordinates)). These are
+CRS coordinate interpretations, not definitions of ordinary USD scene units.
+The last row is the native state of a BIM export; it can be placed once a site
+calibration derives it from a projected CRS, which is how ISO/TS 15143-4 models
+a worksite localization (site calibration).
+
+What a CRS may describe depends on the property, not on its type. A source
+position may be recorded in any of the computable types above, in the units the
+WKT declares — for example, degrees and metres for a geographic CRS. Geometry
+positions and ordinary xformOp translations are lengths in scene units. An
+angular coordinate is never read as a scene distance
+([requirement 12](#functional-requirements)). A resolution that cannot be
+completed — including an out-of-domain or non-finite result on a geographic
+path — is a detectable failure, not a placement
+([requirement 21](#functional-requirements)).
 
 The 2D UTM examples in [Detailed design](#geospatialcrs-typed-schema) and
 [Appendix A](#wgs-84--utm-zone-11n-epsg32611) illustrate horizontal CRS definitions,
 which can be components of a complete 3D definition. They are not complete
 3D model-placement bindings: adding a numeric third component does not supply
 a vertical CRS, and a reader must not infer zero height or an ellipsoidal height
-reference. This clarification does not define a separate 2D placement mode or
-settle the measurement-coordinate association in question 11.
+reference. This does not define a separate 2D model-placement mode; horizontal
+measurement domains are addressed under
+[external measurement association](#external-measurement-association).
 
 For dynamic datums, a CRS definition can carry a frame reference epoch in
 `DYNAMIC[FRAMEEPOCH[...]]`. A coordinate epoch is separate: the
