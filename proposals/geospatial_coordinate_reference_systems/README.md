@@ -182,22 +182,28 @@ A projection cannot flatten a curved surface without distorting it.
 **elevation factor** — the survey is measured at the site's height, the
 projection computed on the ellipsoid — gives the **combined scale factor**.
 A **grid** coordinate carries that distortion; a **ground** coordinate
-matches a tape measure on site. Near Paris on Lambert-93 at 77.5 m the
-factor is 0.999881 (−118.7 ppm): a kilometre on the ground is 999.881 m on
-the grid.
+matches a tape measure on site. At control point 2 in the supplied France
+sample (48.8193987692° N, 2.4702269726° E, ellipsoidal height 81.0525 m),
+the Lambert-93 grid scale factor 0.999865792 and elevation factor 0.999987298
+give a combined scale factor of 0.999853092 (−146.9 ppm): a kilometre on the
+ground is about 999.853 m on the grid.
 
 **Direction.** **Grid convergence** is the angle between grid north — the
 northing axis of the projection — and true north. At the same Lambert-93
-site it is about 31 arcmin, corresponding to some 9 m over a kilometre.
+control point, the sample reports −0.3844°, a magnitude of about 23 arcmin.
+Confusing grid north with true north gives about 6.7 m of lateral offset
+over a kilometre.
 A bearing read off a national grid is a grid bearing. This describes the
 projected CRS's axes; it does not assign north to a particular USD stage axis
 or redefine the model's geodetic attitude. Those mappings are specified under
 [geospatial model attitude and stage axes](#geospatial-model-attitude-and-stage-axes).
 
-Survey and construction work in ground coordinates, regional GIS in grid
-coordinates. A CRS states which of the two its numbers are and where its
-axes point, and both are properties of the site, not of any object placed
-in it.
+Which system a project uses depends on its acceptable distortion. Survey and
+construction can work directly on a national or state grid where its distortion
+is acceptable, or use a ground system such as the Westminster site calibration
+where it is not. Regional GIS may use projected grids or geographic coordinates.
+A CRS records the coordinate interpretation and axis directions; it does not
+supply an individual model's position or geodetic attitude.
 
 ### CRS encodings: OGC WKT, EPSG, and WKID
 
