@@ -1,14 +1,10 @@
 # Geospatial Coordinate Reference Systems for OpenUSD
 
-**Model/runtime review candidate.** The terms and functional requirements are
-the merged review baseline. The detailed model and runtime contract below are
-evaluated against them. Author feedback supports geographic source
-positions, input-only placement, the anchor/descendant transform distinction,
-site calibration through WKT and conservative dependency declarations.
-The authored heading/pitch/roll tuple and the required ordinary USD bake with a
-double-precision origin now have author support. The detailed conventions,
-external associations, WKT string normalization and Profiles integration remain
-under review.
+**Geometry WG–accepted Proposal.** The terms and the 31 functional requirements
+are the agreed baseline; the detailed model and runtime contract are evaluated
+against them. Two independently derived readers reproduce the supplied France
+and Colorado control coordinates to within 0.1 mm. Profiles capability naming
+and registration ownership continue through review here.
 Execution evidence distinguishes proposed meaning, author agreement,
 implementation defects and unverified coverage; it does not establish complete
 conformance.
@@ -46,7 +42,7 @@ between different CRS zones within a single composed stage.
 
 This proposal is the result of collaborative work
 within the AOUSD AECO Interest Group,
-with contributions from Esri, Pixar, NVIDIA, Bentley, and Trimble.
+with contributions from Esri, NVIDIA, and Trimble.
 
 ## Motivation
 
