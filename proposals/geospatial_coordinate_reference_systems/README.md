@@ -17,6 +17,7 @@ conformance.
 
 - **Esri** (Tamrat Belayneh, Simon Haegler)
 - **Nvidia** (Aaron Luk)
+- **Trimble** (Sébastien Vielliard)
 - The case study, the WKT encoding section and the runtime coordinate
   transformation section are Sébastien Vielliard's work.
 - Also draws on work by David de Koning, Sébastien Vielliard, Simon Haegler
@@ -226,8 +227,9 @@ A CRS used for 3D model placement must give three coordinate components and a
 computable link to a geodetic datum, so that every position it records can be
 converted to a geodetic one. How the third component is defined depends on the
 type: an axis of the geocentric frame, an ellipsoidal height, or a height in a
-declared vertical CRS. A 2D CRS does not qualify on its own, nor does a local
-grid tied to the Earth only by text. Support also requires the component and
+declared vertical CRS. A 2D CRS is not a complete definition, although a reader
+may adapt it with the default vertical reference described below. A local
+grid tied to the Earth only by text does not qualify. Support also requires the component and
 placement-basis conventions specified in the [detailed design](#detailed-design).
 
 The types below run from global to local.
@@ -262,12 +264,41 @@ path — is a detectable failure, not a placement
 
 The 2D UTM examples in [Detailed design](#geospatialcrs-typed-schema) and
 [Appendix A](#wgs-84--utm-zone-11n-epsg32611) illustrate horizontal CRS definitions,
-which can be components of a complete 3D definition. They are not complete
-3D model-placement bindings: adding a numeric third component does not supply
-a vertical CRS, and a reader must not infer zero height or an ellipsoidal height
-reference. This does not define a separate 2D model-placement mode; horizontal
-measurement domains are addressed under
+which can be components of a complete 3D definition. Writers should author a
+complete 3D CRS. When the vertical component is missing, as in these examples,
+a reader may adapt by interpreting the third component as an EGM2008
+gravity-related height (EPSG 3855) in the linear unit of the horizontal CRS
+(metres for a geographic CRS), as if the WKT were the compound of the horizontal
+CRS and EGM2008 height; it reports a warning when it does so. A reader must not
+infer zero height or an ellipsoidal height. This does not define a separate 2D
+model-placement mode; horizontal measurement domains are addressed under
 [external measurement association](#external-measurement-association).
+
+#### Reported height model
+
+A consumer reports the height interpretation of a resolved result without the
+client re-deriving it from WKT. This is a query result, not an authored
+property: `crs:wkt` remains the sole authored authority for the vertical
+reference.
+
+| Reported field | Values | Meaning |
+|---|---|---|
+| `heightModel` | `gravityRelated`, `ellipsoidal`, `none` | How the third component is defined. `none` for a geocentric frame, which has no height axis. |
+| `heightReference` | identifier or name taken from the WKT | The vertical CRS or ellipsoid the height is measured from — for example `EPSG:3855` (EGM2008 height), or the base ellipsoid and its datum realization. |
+| `heightUnit` | the WKT length unit | Unit of the third component. |
+| `heightReferenceSource` | `declared`, `assumed` | Whether the reference came from the authored WKT or from the default vertical reference above. |
+
+A reader that applied the default vertical reference reports `assumed` and
+emits the warning required above. A reader must not present an assumed
+reference as a declared one. `declared` and `assumed` are always
+distinguishable by the consumer.
+
+This mirrors the coarse `heightModelInfo` metadata in OGC I3S
+([17-014r9](https://docs.ogc.org/cs/17-014r9/17-014r9.html), 7.2 Height
+Models), which exists so a client can decide quickly whether a layer's vertical
+interpretation matches a basemap without parsing WKT. Here the same information
+is a computed result rather than authored metadata, so it cannot drift from the
+WKT it describes.
 
 For dynamic datums, a CRS definition can carry a frame reference epoch in
 `DYNAMIC[FRAMEEPOCH[...]]`. A coordinate epoch is separate: the
@@ -1658,7 +1689,7 @@ The initial component profile covers east/north/up axes and geocentric X/Y/Z.
 South-oriented axes are a known extension for a later component profile,
 not a forgotten CRS family. Other directions and coordinate-system types are
 unsupported by the initial profile and fail visibly rather than being guessed
-or changed by WKT string normalization. A 2D CRS does not acquire height merely by adding a number.
+or changed by WKT string normalization. A 2D CRS acquires height only through the default vertical reference (EGM2008 height, with a warning); see [3D CRS types](#3d-crs-types).
 Unrelated engineering coordinates cannot establish an Earth location.
 
 #### Geospatial model attitude and stage axes
