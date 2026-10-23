@@ -1,14 +1,5 @@
 # Geospatial Coordinate Reference Systems for OpenUSD
 
-**Geometry WG–accepted Proposal.** The terms and the 31 functional requirements
-are the agreed baseline; the detailed model and runtime contract are evaluated
-against them. Two independently derived readers reproduce the supplied France
-and Colorado control coordinates to within 0.1 mm. Profiles capability naming
-and registration ownership continue through review here.
-Execution evidence distinguishes proposed meaning, author agreement,
-implementation defects and unverified coverage; it does not establish complete
-conformance.
-
 ## Contributors
 
 - **Esri** (Tamrat Belayneh, Simon Haegler)
@@ -224,7 +215,7 @@ computable link to a geodetic datum, so that every position it records can be
 converted to a geodetic one. How the third component is defined depends on the
 type: an axis of the geocentric frame, an ellipsoidal height, or a height in a
 declared vertical CRS. A 2D CRS is not a complete definition, although a reader
-may adapt it with the default vertical reference described below. A local
+adapts it with the default vertical reference described below. A local
 grid tied to the Earth only by text does not qualify. Support also requires the component and
 placement-basis conventions specified in the [detailed design](#detailed-design).
 
@@ -262,10 +253,11 @@ The 2D UTM examples in [Detailed design](#geospatialcrs-typed-schema) and
 [Appendix A](#wgs-84--utm-zone-11n-epsg32611) illustrate horizontal CRS definitions,
 which can be components of a complete 3D definition. Writers should author a
 complete 3D CRS. When the vertical component is missing, as in these examples,
-a reader may adapt by interpreting the third component as an EGM2008
+a reader interprets the third component as an EGM2008
 gravity-related height (EPSG 3855) in the linear unit of the horizontal CRS
 (metres for a geographic CRS), as if the WKT were the compound of the horizontal
-CRS and EGM2008 height; it reports a warning when it does so. A reader must not
+CRS and EGM2008 height; it reports a warning when it does so, or fails visibly
+if it cannot honor this interpretation. A reader must not
 infer zero height or an ellipsoidal height. This does not define a separate 2D
 model-placement mode; horizontal measurement domains are addressed under
 [external measurement association](#external-measurement-association).
@@ -280,9 +272,11 @@ reference.
 | Reported field | Values | Meaning |
 |---|---|---|
 | `heightModel` | `gravityRelated`, `ellipsoidal`, `none` | How the third component is defined. `none` for a geocentric frame, which has no height axis. |
-| `heightReference` | identifier or name taken from the WKT | The vertical CRS or ellipsoid the height is measured from — for example `EPSG:3855` (EGM2008 height), or the base ellipsoid and its datum realization. |
-| `heightUnit` | the WKT length unit | Unit of the third component. |
+| `heightReference` | identifier or name taken from the WKT, or `EPSG:3855` when assumed | The vertical CRS or ellipsoid the height is measured from — for example `EPSG:3855` (EGM2008 height), or the base ellipsoid and its datum realization. |
+| `heightUnit` | the WKT length unit, or the horizontal CRS's linear unit when assumed | Unit of the third component. |
 | `heightReferenceSource` | `declared`, `assumed` | Whether the reference came from the authored WKT or from the default vertical reference above. |
+
+The report describes the source CRS.
 
 A reader that applied the default vertical reference reports `assumed` and
 emits the warning required above. A reader must not present an assumed
