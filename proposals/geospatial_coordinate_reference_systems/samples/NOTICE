@@ -1,0 +1,8 @@
+AECO CRS samples for the OpenUSD geospatial CRS proposal
+Copyright 2026 Trimble Inc.
+
+This folder is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The control points, coordinate tables, WKT2 strings, LandXML terrain model, KML files and
+IFC building envelope were produced by Trimble from Trimble survey and design data for the
+Trimble Westminster (Colorado, USA) and Trimble Paris (Joinville-le-Pont, France) sites.

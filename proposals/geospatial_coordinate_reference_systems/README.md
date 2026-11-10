@@ -2711,6 +2711,7 @@ not a prescribed architecture or prerequisites added to the initial scope.
 | PROJ Library | [proj.org](https://proj.org/) |
 | usdGeospatial Prototype (C++) | [GitHub](https://github.com/mistafunk/USD/tree/geospatial-prototype/pxr/usd/usdGeospatial) |
 | Geospatial POC Implementations | [GitHub](https://github.com/mistafunk/aousd-geospatial-pocs) |
+| AECO CRS samples: control points, WKT2 templates and expected coordinates (Trimble, Apache 2.0) | [samples](samples/README.md) |
 | OpenUSD | [GitHub](https://github.com/PixarAnimationStudios/OpenUSD) |
 | AOUSD Geospatial Presentation | [Google Slides](https://docs.google.com/presentation/d/13hVKSXQjJ1IAAj2ZLQL8klVAHC22GBcqNvV2WYqRWRY) |
 

@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <Style id="pointStylePhoto">
+      <IconStyle>
+        <color>ffffffff</color>
+        <Icon>
+          <href>files/camera.png</href>
+          <x>0</x>
+          <y>0</y>
+        </Icon>
+        <hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction" />
+      </IconStyle>
+      <LabelStyle>
+        <color>ffffffff</color>
+      </LabelStyle>
+      <BalloonStyle>
+        <text><![CDATA[<b>$[name]</b><br/>$[description]]]></text>
+      </BalloonStyle>
+      <LineStyle>
+        <color>ff0000ff</color>
+        <width>1</width>
+      </LineStyle>
+    </Style>
+    <Style id="featureStyle-Color [White]">
+      <IconStyle>
+        <color>ffffffff</color>
+        <Icon>
+          <href>root://icons/palette-4.png</href>
+          <x>32</x>
+          <y>0</y>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <color>ffffffff</color>
+      </LabelStyle>
+      <BalloonStyle>
+        <text><![CDATA[<b>$[name]</b><br/>$[description]]]></text>
+      </BalloonStyle>
+      <LineStyle>
+        <color>ffffffff</color>
+        <width>1</width>
+      </LineStyle>
+    </Style>
+    <Folder>
+      <Placemark>
+        <name>2</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661099.039 m</td></tr><tr><td>Northing</td><td>8180053.117 m</td></tr><tr><td>Elevation</td><td>37.298 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47022697258744,48.8193987682169,81.0524527149524</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>15</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661223.058 m</td></tr><tr><td>Northing</td><td>8180045.848 m</td></tr><tr><td>Elevation</td><td>37.557 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47191656029659,48.8193411701545,81.3112384050761</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>16</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661212.413 m</td></tr><tr><td>Northing</td><td>8180042.380 m</td></tr><tr><td>Elevation</td><td>37.668 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47177192475598,48.8193093170927,81.4222493933836</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>17</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661207.646 m</td></tr><tr><td>Northing</td><td>8180040.822 m</td></tr><tr><td>Elevation</td><td>37.598 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47170715519567,48.8192950079918,81.3522543050851</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>18</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661203.291 m</td></tr><tr><td>Northing</td><td>8180039.399 m</td></tr><tr><td>Elevation</td><td>37.542 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47164798350753,48.81928193867,81.2962587928888</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>19</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661199.584 m</td></tr><tr><td>Northing</td><td>8180038.200 m</td></tr><tr><td>Elevation</td><td>37.480 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47159761510219,48.8192709242679,81.2342626351207</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>21</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661203.754 m</td></tr><tr><td>Northing</td><td>8180064.256 m</td></tr><tr><td>Elevation</td><td>37.630 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47165193274038,48.8195055018365,81.3843030359757</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>24</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661168.611 m</td></tr><tr><td>Northing</td><td>8180021.061 m</td></tr><tr><td>Elevation</td><td>37.518 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47117744967667,48.8191148570464,81.2722818474507</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>27</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661111.942 m</td></tr><tr><td>Northing</td><td>8180019.871 m</td></tr><tr><td>Elevation</td><td>37.377 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47040584494315,48.819100603024,81.1313716055027</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>28</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661105.367 m</td></tr><tr><td>Northing</td><td>8180027.536 m</td></tr><tr><td>Elevation</td><td>37.482 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47031557838087,48.819169120356,81.2363961446818</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>29</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661094.803 m</td></tr><tr><td>Northing</td><td>8180026.904 m</td></tr><tr><td>Elevation</td><td>37.077 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47017177786644,48.8191627739594,80.8314121344342</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>34</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661113.818 m</td></tr><tr><td>Northing</td><td>8180108.269 m</td></tr><tr><td>Elevation</td><td>35.855 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47042299456552,48.8198956667123,79.6095285802142</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>35</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661121.287 m</td></tr><tr><td>Northing</td><td>8180090.108 m</td></tr><tr><td>Elevation</td><td>36.444 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.4705264338726,48.8197328168939,80.1984835908511</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>36</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661125.251 m</td></tr><tr><td>Northing</td><td>8180077.565 m</td></tr><tr><td>Elevation</td><td>36.917 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47058160747491,48.8196202687537,80.6714544562523</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>37</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661148.843 m</td></tr><tr><td>Northing</td><td>8180084.003 m</td></tr><tr><td>Elevation</td><td>37.503 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47090227525543,48.8196796435574,81.2574278448021</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>39</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661133.640 m</td></tr><tr><td>Northing</td><td>8180043.450 m</td></tr><tr><td>Elevation</td><td>37.607 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47069908916758,48.8193140052526,81.3613790955099</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>100</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661076.498 m</td></tr><tr><td>Northing</td><td>8180049.079 m</td></tr><tr><td>Elevation</td><td>36.577 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.46992039175774,48.8193610402562,80.3314819650252</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>A</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661091.750 m</td></tr><tr><td>Northing</td><td>8180055.667 m</td></tr><tr><td>Elevation</td><td>36.893 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47012746812628,48.8194212423917,80.6474691532038</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AA</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661137.426 m</td></tr><tr><td>Northing</td><td>8180027.256 m</td></tr><tr><td>Elevation</td><td>37.633 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47075218454138,48.8191686131301,81.3873436409535</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AB</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661166.956 m</td></tr><tr><td>Northing</td><td>8180035.868 m</td></tr><tr><td>Elevation</td><td>37.585 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47115350719485,48.8192479098491,81.3393113345776</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AC</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661169.188 m</td></tr><tr><td>Northing</td><td>8180018.566 m</td></tr><tr><td>Elevation</td><td>37.513 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.4711855439377,48.8190924561402,81.2672763952897</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AD</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661117.229 m</td></tr><tr><td>Northing</td><td>8180000.996 m</td></tr><tr><td>Elevation</td><td>37.384 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47047963614126,48.8189311954757,81.1383288631805</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AE</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661172.456 m</td></tr><tr><td>Northing</td><td>8180094.160 m</td></tr><tr><td>Elevation</td><td>37.459 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47122287700494,48.8197724630258,81.2134079307672</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AF</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661144.285 m</td></tr><tr><td>Northing</td><td>8180010.196 m</td></tr><tr><td>Elevation</td><td>37.586 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47084720981389,48.8190156258444,81.3403016347807</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AG</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661095.657 m</td></tr><tr><td>Northing</td><td>8180031.458 m</td></tr><tr><td>Elevation</td><td>37.007 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47018297481763,48.8192037807945,80.7614189930149</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AH</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661238.126 m</td></tr><tr><td>Northing</td><td>8180070.413 m</td></tr><tr><td>Elevation</td><td>37.592 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47211943091995,48.8195630208739,81.3462584300974</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AI</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661249.795 m</td></tr><tr><td>Northing</td><td>8180051.181 m</td></tr><tr><td>Elevation</td><td>37.866 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47228016130424,48.8193908007986,81.6202046917049</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AJ</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661216.817 m</td></tr><tr><td>Northing</td><td>8180037.254 m</td></tr><tr><td>Elevation</td><td>37.749 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47183238428813,48.8192634955259,81.5032329716935</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AK</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661133.308 m</td></tr><tr><td>Northing</td><td>8180042.121 m</td></tr><tr><td>Elevation</td><td>37.610 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47069469416671,48.8193020329971,81.364377228267</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AL</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661165.484 m</td></tr><tr><td>Northing</td><td>8180074.736 m</td></tr><tr><td>Elevation</td><td>37.526 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47112977395941,48.819597350011,81.2803840789154</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AM</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661199.974 m</td></tr><tr><td>Northing</td><td>8180036.028 m</td></tr><tr><td>Elevation</td><td>37.534 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47160313201339,48.819251416304,81.2882580709829</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AN</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661230.420 m</td></tr><tr><td>Northing</td><td>8180049.743 m</td></tr><tr><td>Elevation</td><td>37.479 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47201644748546,48.8193766576361,81.2332335144976</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AP</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661196.511 m</td></tr><tr><td>Northing</td><td>8180029.473 m</td></tr><tr><td>Elevation</td><td>37.556 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47155659417303,48.819192251685,81.31025182243</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>AQ</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661106.404 m</td></tr><tr><td>Northing</td><td>8180024.190 m</td></tr><tr><td>Elevation</td><td>36.490 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47033001817276,48.8191390954959,80.2443884058402</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>B</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661126.912 m</td></tr><tr><td>Northing</td><td>8180062.462 m</td></tr><tr><td>Elevation</td><td>37.518 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47060566147118,48.8194845545819,81.2724244230124</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>C</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661152.850 m</td></tr><tr><td>Northing</td><td>8180069.587 m</td></tr><tr><td>Elevation</td><td>37.483 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.4709582112891,48.819550254406,81.2373952503096</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>D</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661183.340 m</td></tr><tr><td>Northing</td><td>8180082.435 m</td></tr><tr><td>Elevation</td><td>37.413 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47137220902944,48.8196677040449,81.1673690532363</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>E</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661200.515 m</td></tr><tr><td>Northing</td><td>8180085.215 m</td></tr><tr><td>Elevation</td><td>37.491 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47160583707552,48.8196937793284,81.2453462278183</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>F</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661229.042 m</td></tr><tr><td>Northing</td><td>8180095.162 m</td></tr><tr><td>Elevation</td><td>37.288 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47199337981052,48.8197850157242,81.0423179622513</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>G</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661168.574 m</td></tr><tr><td>Northing</td><td>8180109.230 m</td></tr><tr><td>Elevation</td><td>37.407 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47116858163901,48.8199077414281,81.1614415062187</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>I</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661144.100 m</td></tr><tr><td>Northing</td><td>8180097.858 m</td></tr><tr><td>Elevation</td><td>37.111 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47083636920792,48.8198039415803,80.8654606176633</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>J</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661149.490 m</td></tr><tr><td>Northing</td><td>8180073.959 m</td></tr><tr><td>Elevation</td><td>37.375 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.4709120394929,48.8195893603705,81.1294086141175</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>K</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661152.594 m</td></tr><tr><td>Northing</td><td>8180065.827 m</td></tr><tr><td>Elevation</td><td>37.635 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47095508189395,48.8195164254131,81.389388859331</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>L</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661156.472 m</td></tr><tr><td>Northing</td><td>8180067.042 m</td></tr><tr><td>Elevation</td><td>37.603 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47100777758179,48.8195275946969,81.3573847687263</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>M</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661156.033 m</td></tr><tr><td>Northing</td><td>8180076.064 m</td></tr><tr><td>Elevation</td><td>37.541 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.4710009430829,48.8196087002796,81.2954018119991</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>N</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661172.627 m</td></tr><tr><td>Northing</td><td>8180081.369 m</td></tr><tr><td>Elevation</td><td>37.595 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47122641901599,48.8196574467596,81.3493844998722</coordinates>
+        </Point>
+      </Placemark>
+      <name>Point</name>
+      <Placemark>
+        <name>O</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661203.348 m</td></tr><tr><td>Northing</td><td>8180085.399 m</td></tr><tr><td>Elevation</td><td>37.560 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47164439984693,48.819695611326,81.3143419657873</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>P</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661224.726 m</td></tr><tr><td>Northing</td><td>8180086.743 m</td></tr><tr><td>Elevation</td><td>37.488 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47193540130144,48.8197090353176,81.2423097236066</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Q</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661227.163 m</td></tr><tr><td>Northing</td><td>8180108.647 m</td></tr><tr><td>Elevation</td><td>37.080 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47196651392009,48.8199061661852,80.8343454191495</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>R</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661239.306 m</td></tr><tr><td>Northing</td><td>8180050.271 m</td></tr><tr><td>Elevation</td><td>37.862 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47213740758442,48.8193819615491,81.6162200574064</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>S</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661227.688 m</td></tr><tr><td>Northing</td><td>8180058.030 m</td></tr><tr><td>Elevation</td><td>37.360 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47197845799313,48.8194510101457,81.1142529459728</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>T</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661226.723 m</td></tr><tr><td>Northing</td><td>8180064.760 m</td></tr><tr><td>Elevation</td><td>37.460 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47196467905815,48.8195114713727,81.2142666931258</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>U</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661223.231 m</td></tr><tr><td>Northing</td><td>8180075.655 m</td></tr><tr><td>Elevation</td><td>37.512 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47191609255589,48.8196092295603,81.266292078108</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>V</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661196.249 m</td></tr><tr><td>Northing</td><td>8180043.341 m</td></tr><tr><td>Elevation</td><td>37.570 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47155171161432,48.8193169475237,81.3242773501511</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>W</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661190.274 m</td></tr><tr><td>Northing</td><td>8180061.990 m</td></tr><tr><td>Elevation</td><td>37.533 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.4714685756524,48.8194842803029,81.2873207983646</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>X</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661185.651 m</td></tr><tr><td>Northing</td><td>8180076.365 m</td></tr><tr><td>Elevation</td><td>37.652 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47140425613228,48.8196132624266,81.4063543173422</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>XX</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661176.522 m</td></tr><tr><td>Northing</td><td>8180076.360 m</td></tr><tr><td>Elevation</td><td>37.533 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47127993674425,48.8196126457602,81.287369115289</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Y</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661160.673 m</td></tr><tr><td>Northing</td><td>8180053.888 m</td></tr><tr><td>Elevation</td><td>37.643 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47106623533458,48.8194095665684,81.3973541441325</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Z</name>
+        <description><![CDATA[<table><tr><th colspan="2">Coordinates</th></tr><tr><td>Easting</td><td>1661204.414 m</td></tr><tr><td>Northing</td><td>8180081.983 m</td></tr><tr><td>Elevation</td><td>37.760 m</td></tr></table>]]></description>
+        <snippet maxLines="0" />
+        <styleUrl>#featureStyle-Color [White]</styleUrl>
+        <Point>
+          <coordinates>2.47165924055513,48.8196649586194,81.5143340533922</coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>
