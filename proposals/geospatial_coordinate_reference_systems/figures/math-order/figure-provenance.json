@@ -18,20 +18,14 @@
       48.8584,
       80.0
     ],
-    "illustrative_authored_crs:orientation": [
-      0.9659258262890683,
-      0.0,
-      0.0,
-      -0.25881904510252074
-    ],
-    "attitude_heading_degrees": 30.0,
-    "attitude_pitch_roll_degrees": [
+    "crs:orientation": [
+      30.0,
       0,
       0
     ]
   },
   "source_crs_wkt": "GEOGCRS[\"RGF93 v2b (lon-lat)\",DATUM[\"Reseau Geodesique Francais 1993 v2b\",ELLIPSOID[\"GRS 1980\",6378137,298.257222101,LENGTHUNIT[\"metre\",1]]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433]],CS[ellipsoidal,3],AXIS[\"geodetic longitude (Lon)\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433]],AXIS[\"geodetic latitude (Lat)\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433]],AXIS[\"ellipsoidal height (h)\",up,ORDER[3],LENGTHUNIT[\"metre\",1]],USAGE[SCOPE[\"GIS.\"],AREA[\"France - onshore and offshore, mainland and Corsica (France m\u00e9tropolitaine including Corsica).\"],BBOX[41.15,-9.86,51.56,10.38]],ID[\"EPSG\",9783],REMARK[\"Replaces RGF93 v2 (lon-lat) (CRS code 9778) from 2021-01-05. See CRS code 9781 for system with horizontal axes in sequence lat-lon to be used for air, land and sea navigation and safety of life purposes.\"]]",
-  "consumer_output_crs_wkt": "PROJCRS[\"RGF93 v2b / Lambert-93\",BASEGEOGCRS[\"RGF93 v2b\",DATUM[\"Reseau Geodesique Francais 1993 v2b\",ELLIPSOID[\"GRS 1980\",6378137,298.257222101,LENGTHUNIT[\"metre\",1]]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433]],ID[\"EPSG\",9781]],CONVERSION[\"Lambert-93\",METHOD[\"Lambert Conic Conformal (2SP)\",ID[\"EPSG\",9802]],PARAMETER[\"Latitude of false origin\",46.5,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8821]],PARAMETER[\"Longitude of false origin\",3,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8822]],PARAMETER[\"Latitude of 1st standard parallel\",49,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Latitude of 2nd standard parallel\",44,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8824]],PARAMETER[\"Easting at false origin\",700000,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8826]],PARAMETER[\"Northing at false origin\",6600000,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8827]],ID[\"EPSG\",18085]],CS[Cartesian,3],AXIS[\"easting (X)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"northing (Y)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"ellipsoidal height (h)\",up,ORDER[3],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],USAGE[SCOPE[\"unknown\"],AREA[\"France - onshore and offshore, mainland and Corsica (France m\u00e9tropolitaine including Corsica).\"],BBOX[41.15,-9.86,51.56,10.38]],REMARK[\"Promoted to 3D from EPSG:9794\"]]",
+  "target_crs_wkt": "PROJCRS[\"RGF93 v2b / Lambert-93\",BASEGEOGCRS[\"RGF93 v2b\",DATUM[\"Reseau Geodesique Francais 1993 v2b\",ELLIPSOID[\"GRS 1980\",6378137,298.257222101,LENGTHUNIT[\"metre\",1]]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433]],ID[\"EPSG\",9781]],CONVERSION[\"Lambert-93\",METHOD[\"Lambert Conic Conformal (2SP)\",ID[\"EPSG\",9802]],PARAMETER[\"Latitude of false origin\",46.5,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8821]],PARAMETER[\"Longitude of false origin\",3,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8822]],PARAMETER[\"Latitude of 1st standard parallel\",49,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Latitude of 2nd standard parallel\",44,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8824]],PARAMETER[\"Easting at false origin\",700000,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8826]],PARAMETER[\"Northing at false origin\",6600000,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8827]],ID[\"EPSG\",18085]],CS[Cartesian,3],AXIS[\"easting (X)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"northing (Y)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"ellipsoidal height (h)\",up,ORDER[3],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],USAGE[SCOPE[\"unknown\"],AREA[\"France - onshore and offshore, mainland and Corsica (France m\u00e9tropolitaine including Corsica).\"],BBOX[41.15,-9.86,51.56,10.38]],REMARK[\"Promoted to 3D from EPSG:9794\"]]",
   "computed_results_not_usd_properties": {
     "resolved_anchor": [
       648237.3015492002,
@@ -57,6 +51,12 @@
         0.0,
         0.9999996982514858
       ]
+    ],
+    "equivalent_model_attitude_quaternion_wxyz": [
+      0.9659258262890683,
+      0.0,
+      0.0,
+      -0.25881904510252074
     ]
   },
   "ordinary_usd_inputs": {
@@ -110,7 +110,7 @@
   ],
   "limits": [
     "Height, attitude and adjustments are illustrative, not surveyed Eiffel Tower placement.",
-    "Authored attitude encoding remains under review; the source geographic quaternion illustrates the current candidate.",
+    "The authored heading/pitch/roll tuple is in degrees. Detailed rotation and interpolation conventions remain under review.",
     "Panels show mathematical contributions, not prescribed intermediate authoring or an animation of geographic travel.",
     "The CRS is static and uses ellipsoidal height; this does not demonstrate an NGF-IGN69 conversion or an epoch transformation.",
     "The example authors zero as the ordinary pivot in the placement-centred chart; absolute illustration coordinates show the equivalent resolved base.",
@@ -138,5 +138,5 @@
     "applied_schema": "GeospatialCRSBindingAPI",
     "composition": "Reference the CRS definition onto the anchor; no crs:binding relationship."
   },
-  "layout_source_sha256": "d182c1806b9d34091513a59f08d76052fa48e7ba060d2285a3f3d9a8ca2e4b35"
+  "layout_source_sha256": "269f28430040a4342037fe43d9289a5f65c6ef63370342cfe00333146c511303"
 }
