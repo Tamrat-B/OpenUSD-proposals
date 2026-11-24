@@ -14,7 +14,7 @@ The geometry was reoriented, rendered and adjusted for explanation.
 ## Reproduction record
 
 [figure-provenance.json](figure-provenance.json) records the geometry hash,
-source and output WKT, illustrative input values, ordered panel names,
+source and Target CRS WKT, illustrative input values, ordered panel names,
 ordinary transform stack, display origin, camera/overlay conventions and
 figure-arithmetic checks.
 
@@ -25,4 +25,5 @@ guides. The record does not prescribe a rendering tool or evaluator.
 
 The checks concern figure arithmetic and presentation, not surveyed Paris
 ground truth or proposal conformance. Height, attitude and adjustments are
-illustrative; the attitude encoding remains under review.
+illustrative; the authored orientation is a heading/pitch/roll tuple in degrees. Detailed
+rotation and interpolation conventions remain under review.
